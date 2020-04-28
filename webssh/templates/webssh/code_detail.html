@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}
+SSH命令详细日志
+{% endblock %}
+{% block content %}
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-10">
+        <h2></h2>
+        <ol class="breadcrumb">
+            <li>
+                <a>会话管理</a>
+            </li>
+            <li>
+                <a href="{% url 'ssh-command-log' %}">命令记录</a>
+            </li>
+            <li class="active">
+                <strong>操作SSH详细记录</strong>
+            </li>
+        </ol>
+    </div>
+    <div class="col-sm-2">
+    </div>
+</div>
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <h3>ID</h3>
+        <p>{{connection_log.id}}</p>
+        <h3>结束时间</h3>
+        <p>{{connection_log.addtime}}</p>
+        <h3>执行主机</h3>
+        <p>{{connection_log.asset.ip}}</p>
+        <h3>执行命令:</h3>
+        <h4 style="margin-left: 20px;">
+            {% autoescape on %}
+            {{connection_log.command}}
+            {% endautoescape %}
+        </h4>
+    </div>
+</div>
+{% endblock %}

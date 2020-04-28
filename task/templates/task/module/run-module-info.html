@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}
+    执行模块详细日志
+{% endblock %}
+{% block content %}
+ <div class="row wrapper border-bottom white-bg page-heading">
+        <div class="col-sm-10">
+            <h2></h2>
+            <ol class="breadcrumb">
+                <li>
+                    <a>任务管理</a>
+                </li>
+                <li>
+                    <a href="{% url 'ans-module-log' %}">执行操作记录</a>
+                </li>
+                <li class="active">
+                    <strong>执行模块操作详细记录</strong>
+                </li>
+            </ol>
+        </div>
+        <div class="col-sm-2">
+        </div>
+    </div>
+<div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+    <h3>ID</h3>
+    <p>{{module.id}}</p>
+    <h3>操作用户</h3>
+    <p>{{module.ans_user.username}}</p>
+    <h3>执行模块</h3>
+    <p>{{module.ans_module}}</p>
+     <h3>执行命令</h3>
+    <p>{{module.ans_args}}</p>
+     <h3>执行主机</h3>
+    <p>{{module.ans_server}}</p>
+     <h3>执行结果</h3>
+    <p>
+        <pre style="background-color: #0c0c0c" id="code-ans">
+            <code style="color: #008000">
+                {% autoescape on %}
+                {{module.ans_result}}
+                {% endautoescape %}
+            </code>
+        </pre>
+    </p>
+    <h3>执行时间</h3>
+    <p>{{module.ans_datetime}}</p>
+        </div>
+</div>
+{% endblock %}

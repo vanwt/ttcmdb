@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block title %}
+    执行剧本
+{% endblock %}
+{% block content %}
+    <div class="row wrapper border-bottom white-bg page-heading">
+        <div class="col-sm-10">
+            <h2></h2>
+            <ol class="breadcrumb">
+                <li>
+                    <a>PlayBook</a>
+                </li>
+                <li class="active">
+                    <strong>剧本执行</strong>
+                </li>
+            </ol>
+        </div>
+        <div class="col-sm-2">
+        </div>
+    </div>
+    <div class="wrapper wrapper-content">
+        <div class="modal-header">
+            <h4 class="modal-title" id="CeleryTaskModalLabel">剧本执行</h4>
+        </div>
+        <div class="row">
+            <div class="col-sm-6">
+                {% csrf_token %}
+                <div class="col-md-6" style="margin-top: 10px;">
+                    <div class="form-group">
+                        <label>选择主机</label>
+                        <select class="selectpicker" title="选择一个主机进行配置" data-live-search="true" data-size="5"
+                                data-width="100%" id="ans_host" multiple>
+
+                        </select>
+                    </div>
+                    <div class="form-group">
+
+                    </div>
+                    <div class="form-group">
+                        <label>选择剧本</label>
+                        <select id="playbook" class="form-control selectpicker" title="选择一个剧本"
+                                data-live-search="true" data-size="5">
+                            {% for pb in pbl %}
+                                <option value="{{ pb.id }}">{{ pb.playbook_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <a class="btn btn-primary" onclick="runPlaybook()">执行</a>
+                        <a href="{% url 'playbooks' %}" type="button" class="btn btn-warning">返回</a>
+                    </div>
+                    <!-- /.form-group -->
+                </div>
+                <!-- /.col -->
+            </div>
+            <div class="col-sm-6">
+                <div class="box-flex">
+                    <h3>注意事项</h3>
+                    <p>1. 执行playbook时不要且换页面，因为websooket连接后会立即执行，切换页面影响速度...</p>
+                    <p>2. 当playbook正在执行的时后，请不要关闭页面</p>
+                    <p style="color: red;font-size: 20px;">3. 注意，执行的剧本参数 -host 必须这样书写 -host:all 默认使用all组</p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="box-footer">
+                    <pre style="color: black" id="code-ans"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+
+    <script>
+        // 获取主机
+        $(function () {
+            let url = "/api/v1/assets/hosts/";
+            $.get(
+                url, {}, function (data) {
+                    let html = undefined;
+                    let par = $("#ans_host");
+                    $.each(data, function (i, obj) {
+                        html = $('<option value="' + obj.id + '">' + obj.name + '</option>');
+                        par.append(html)
+                    });
+                    par.selectpicker('refresh');
+                }
+            );
+
+        });
+
+        function runPlaybook() {
+            // 发送post请求，到后台验证，验证成功后返回ws连接
+            var ids = [];
+            $("#ans_host option:selected").each(function () {
+                ids.push($(this).val());
+            });
+            let playbook = $("#playbook option:selected").val();
+
+            if (ids !== [] && playbook) {
+                // 发送请求 建立ws连接
+                ws_connect(ids, playbook)
+            } else {
+                layer.alert("执行失败，请选择必要的选项", {closeBtn: 0});
+            }
+            //收到连接然后发送ws请求
+            // 等待服务器传消息
+        }
+
+        function ws_connect(ids, pid) {
+            // 作为参数发送到服务器 并建立连接
+            var playbook_c = new WebSocket(
+                'ws://' + window.location.host + '/ws/playbook-run/?' + 'key=fau87isadhjfk23khjkyr783q4hjk345jg3hu'
+            );
+            //发送消息
+            playbook_c.onopen = function () {
+                let message = {};
+                message['ids'] = ids;
+                message['id'] = pid;
+                message['role'] = 0;
+                let send_data = JSON.stringify(message);
+                playbook_c.send(send_data)
+            };
+            // 接受消息
+            playbook_c.onmessage = function (recv) {
+                $("#code-ans").append(recv.data)
+            };
+            playbook_c.onclose = function (recv) {
+                console.log("执行完毕")
+            };
+        }
+    </script>
+
+{% endblock %}

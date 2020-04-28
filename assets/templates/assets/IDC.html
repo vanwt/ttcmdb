@@ -1,0 +1,312 @@
+{% extends 'base.html'%}
+{% block title %}
+添加ID&&&IDC列表
+{% endblock %}
+{% block content %}
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-10">
+        <h2></h2>
+        <ol class="breadcrumb">
+            <li>
+                <a>资产管理</a>
+            </li>
+            <li class="active">
+                <strong>IDC列表</strong>
+            </li>
+        </ol>
+    </div>
+    <div class="col-sm-2">
+    </div>
+</div>
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-lg-3" id="split-left" style="padding-left: 3px; display: none;">
+            <div class="ibox float-e-margins">
+                <div class="ibox-content mailbox-content" style="padding-top: 0;padding-left: 1px">
+                    <div class="file-manager ">
+                        <div class="clearfix"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-12" id="split-right">
+            <div class="mail-box-header">
+                <div class="uc pull-left m-r-5" style="margin:0 10px 10px 0">
+                    <a id="add-idc" class="btn btn-sm btn-primary btn-create-asset">添加机房配置 </a>
+                </div>
+                <div id="asset_list_table_wrapper" class="dataTables_wrapper form-inline dt-bootstrap no-footer">
+                    <table class="footable table toggle-arrow-tiny table-striped table-bordered table-hover default dataTable no-footer footable-loaded breakpoint"
+                           id="asset_list_table" style="width: 100%;" role="grid">
+                        <thead>
+                        <tr role="row">
+                            <th class="text-center sorting">id</th>
+                            <th class="text-center sorting">机房名称</th>
+                            <th class="text-center sorting_disabled">机房联系人电话</th>
+                            <th class="text-center sorting">机房地址</th>
+                            <th class="text-center sorting_disabled">机房带宽</th>
+                            <th class="text-center sorting_disabled">网段</th>
+                            <th class="text-center sorting_disabled">运营商</th>
+                            <th class="text-center sorting_disabled">动作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for idc in idc_list %}
+                        <tr role="row" class="odd">
+                            <td class="text-center">
+                                {{ idc.id }}
+                            </td>
+                            <td class="text-center">
+                                {{ idc.name }}
+                            </td>
+                            <td class=" text-center">
+                                {{ idc.linkphone }}
+                            </td>
+                            <td>{{ idc.address }}</td>
+                            <td class="text-center">
+                                {{ idc.bandwidth }}
+                            </td>
+                            <td>{{ idc.network_segment }}</td>
+                            <td class=" text-center">
+                                {{ idc.get_operator_display }}
+                            </td>
+                            <td class=" text-center">
+                                <a onclick="update_idc({{ idc.id }})"
+                                   class="btn btn-xs btn-warning m-l-xs btn_asset_update">修改</a>
+                                <button onclick="del({{idc.id}})" class="btn btn-xs btn-danger m-l-xs btn_asset_delete">
+                                    删除
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr role="row" class="odd">
+                            <td colspan="11" class="text-center">没有数据</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="row m-t">
+                        <div class="col-md-8">
+                            <div id="op" class="col-md-6">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="dataTables_paginate paging_simple_numbers" id="asset_list_table_paginate">
+                                {% include 'page.html'%}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    var html = '<div class="modal-content">' +
+        '<div class="modal-body">' +
+        '<div id="idc_info" class="main form-horizontal">' +
+        '<fieldset>' +
+        '<div class="form-group">' +
+        '<label for="idc_name" class="col-sm-2 control-label">机房名称*</label>' +
+        '<div class="col-sm-6">' +
+        '<input type="text" class="form-control" id="idc_name" >' +
+        '</div>' +
+        '</div>' +
+        '<div class="form-group">' +
+        '<label for="idc_address" class="col-sm-2 control-label">机房地址*</label>' +
+        '<div class="col-sm-6">' +
+        '<input type="text" required class="form-control" id="idc_address">' +
+        '</div>' +
+        '</div>' +
+        '<div class="form-group">' +
+        '<label for="idc_telephone" class="col-sm-2 control-label">联系电话</label>' +
+        '<div class="col-sm-6">' +
+        '<input type="text" required class="form-control" name="idc_telephone" id="idc_telephone">' +
+        '</div>' +
+        '</div>' +
+        '<div class="form-group">' +
+        '<label for="idc_type" class="col-sm-2 control-label">运营商</label>' +
+        '<div class="col-sm-6">' +
+        '<select name="type" id="operator" class="form-control select2 select2-hidden-accessible">' +
+        '<option value="0">电信</option>' +
+        '<option value="1">联通</option>' +
+        '<option value="2">移动</option>' +
+        '<option value="3">铁通</option>' +
+        '<option value="4">小带宽</option>' +
+        '</select>' +
+        '</div>' +
+        '</div>' +
+        '<div class="form-group">' +
+        '<label for="bandwidth" class="col-sm-2 control-label">机房带宽*</label>' +
+        '<div class="col-sm-6">' +
+        '<input type="text" required class="form-control" name="bandwidth" id="bandwidth">' +
+        '</div>' +
+        '</div>' +
+        '<div class="form-group">' +
+        '<label for="network_segment" class="col-sm-2 control-label">网段</label>' +
+        '<div class="col-sm-6">' +
+        '<input class="form-control" required name="network_segment" id="network_segment">' +
+        '</div>' +
+        '</div>' +
+        '<div class="space-24"></div>' +
+        '</fieldset>' +
+        '</div>' +
+        '</div>' +
+        '<div class="modal-footer">' +
+        '<button  class="btn btn-default" onclick="javascript:layer.closeAll()"  >关闭</button>' +
+        '<a id="submit" class="btn btn-primary" >提交</a>' +
+        '</div></div>';
+    $('#add-idc').click(function () {
+        var addidc = layer.open({
+            <!--在此处加载csrf_token-->
+            type: 1,
+            area: "500px",
+            title: "添加机房",
+            closeBtn: 2,
+            shift: 5,
+            shadeClose: false,
+            content: html
+        });
+        $("#submit").click(function () {
+            let name = $('#idc_name').val();
+            let operator = $("#operator option:selected").val();
+            let network_segment = $('#network_segment').val();
+            let address = $('#idc_address').val();
+            let linkphone = $('#idc_telephone').val();
+            let bandwidth = $('#bandwidth').val();
+            if (name) {
+                $.ajax({
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    type: 'post',
+                    async: true,
+                    url: '/api/v1/assets/idc/',
+                    data: {
+                        "name": name,
+                        "operator": operator,
+                        "network_segment": network_segment,
+                        "address": address,
+                        "linkphone": linkphone,
+                        "bandwidth": bandwidth
+                    },
+                    success: function (data) {
+                        if (data.name) {
+                            layer.alert("添加成功", {icon: 1},
+                                function () {
+                                    layer.closeAll();
+                                    window.location.reload()
+                                }
+                            );
+                        } else {
+                            console.log(data);
+                        }
+                    },
+                    error: function (data) {
+                        layer.alert('失败' + data.responseText, {closeBtn: 0})
+                    }
+                })
+            } else {
+                layer.alert('请填写必要数据', {closeBtn: 0})
+            }
+        });
+    });
+
+    function del(id) {
+        layer.confirm("真的要删除吗？", {icon: 3, closeBtn: 2}, function () {
+            var loadT = layer.msg('正在删除,请稍候...', {icon: 16, time: 0, shade: [0.3, '#000']});
+            $.ajax({
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                url: "/api/v1/assets/idc/" + id + "/",
+                type: 'DELETE',
+                success: function (obj) {
+                    if (obj.code === 200) {
+                        layer.alert(
+                            "删除成功",
+                            {icon: 1},
+                            function () {
+                                layer.closeAll();
+                                window.location.reload()
+                            }
+                        );
+                    } else {
+                        layer.alert("删除过程中出现错误:" + obj.msg, {closeBtn: 0});
+                    }
+                },
+                error: function () {
+                    layer.alert("删除失败", {closeBtn: 0});
+                }
+            });
+        });
+    }
+
+    function update_idc(id) {
+        var changeidc = layer.open({
+            <!--在此处加载csrf_token-->
+            type: 1,
+            area: "500px",
+            title: "修改机房配置",
+            closeBtn: 2,
+            shift: 5,
+            shadeClose: false,
+            content: html
+        });
+        $.ajax({
+            type: "get",
+            url: '/api/v1/assets/idc/' + id + '/',
+            success: function (data) {
+                $('#idc_name').val(data.name);
+                $("#operator").val(data.operator);
+                $('#network_segment').val(data.network_segment);
+                $('#idc_address').val(data.address);
+                $('#idc_telephone').val(data.linkphone);
+                $('#bandwidth').val(data.bandwidth);
+
+                $("#submit").click(function () {
+                    let name = $('#idc_name').val();
+                    let operator = $("#operator option:selected").val();
+                    let network_segment = $('#network_segment').val();
+                    let address = $('#idc_address').val();
+                    let linkphone = $('#idc_telephone').val();
+                    let bandwidth = $('#bandwidth').val();
+                    if (name) {
+                        $.ajax({
+                            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                            type: 'put',
+                            async: true,
+                            url: '/api/v1/assets/idc/' + id + '/',
+                            data: {
+                                "name": name,
+                                "operator": operator,
+                                "network_segment": network_segment,
+                                "address": address,
+                                "linkphone": linkphone,
+                                "bandwidth": bandwidth
+                            },
+                            success: function (data) {
+                                if (data.name) {
+                                    layer.alert("添加成功", {icon: 1},
+                                        function () {
+                                            layer.closeAll();
+                                            window.location.reload()
+                                        }
+                                    );
+                                } else {
+                                    console.log(data);
+                                }
+                            },
+                            error: function (data) {
+                                layer.alert('失败' + data.responseText, {closeBtn: 0})
+                            }
+                        })
+                    } else {
+                        layer.alert('请填写必要数据', {closeBtn: 0})
+                    }
+                })
+            },
+            error: function (data) {
+                layer.alert('失败' + data.responseText, {closeBtn: 0})
+            }
+        })
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,143 @@
+<nav class="navbar-default navbar-static-side" role="navigation">
+    <div class="sidebar-collapse">
+        <!-- 导航栏 -->
+        <ul class="nav metismenu" id="side-menu">
+            <!-- 左侧导航栏 -->
+            <li class="nav-header">
+                <div class="dropdown profile-element"> <span>
+                    <h1 style="color: white;font-weight: bold">运维管理</h1>
+                     </span>
+                </div>
+                <div class="logo-element">
+                    TT
+                </div>
+            </li>
+
+            {% if menu.index %}
+                <li class="active">
+                    <a href="/">
+                        <i class="fa fa-dashboard" style="width: 14px"></i> <span class="nav-label">仪表盘</span>
+                        <span class="label label-info pull-right"></span>
+                    </a>
+                </li>
+            {% endif %}
+            {% if menu.permission %}
+                <li>
+                    <a href="#"><i class="fa fa-lock"></i> <span class="nav-label">权限管理</span><span
+                            class="fa arrow"></span></a>
+                    <ul class="nav nav-second-level collapse">
+                        <li><a href="{% url 'user-list' %}"><i class="fa fa-users"></i>用户列表</a></li>
+                        <li><a href="/user/menu/"><i class="fa fa-list-ol"></i>菜单控制</a></li>
+                        <li><a href="/user/url/permission/"><i class="fa fa-link"></i>URL控制</a></li>
+                        <li><a href="/user/role/"><i class="fa fa-user-circle"></i>角色管理</a></li>
+                    </ul>
+                </li>
+            {% else %}
+                <li>
+                    <a href="{% url 'user-info' %}"><i class="fa fa-vcard"></i>
+                        <span class="nav-label">个人中心</span>
+                    </a>
+                </li>
+            {% endif %}
+
+            {% if menu.assets %}
+                <li>
+                    <a href="#"><i class="fa fa-th"></i><span class="nav-label">资产管理</span><span
+                            class="fa arrow"></span></a>
+                    <ul class="nav nav-second-level collapse">
+                        <li><a href="{% url 'assets-list' %}"><i class="fa fa-windows"></i>主机列表</a></li>
+                        <li><a href="{% url 'assets-tags-list' %}"><i class="fa fa-tag"></i>标签管理</a></li>
+                        <li><a href="{% url 'assets-idcs' %}"><i class="fa fa-soundcloud"></i>IDC配置</a></li>
+                        <li><a href="{% url 'assets-system-user' %}"><i class="fa fa-user"></i>系统用户</a></li>
+                        <!-- 域名列表不在 assets下 在forward下 -->
+                    </ul>
+                </li>
+            {% endif %}
+            {% if menu.project %}
+                <li>
+                    <a href="#">
+                        <i class="fa fa-table"></i>
+                        <span class="nav-label">项目管理</span>
+                        <span class="fa arrow"></span>
+                    </a>
+                    <ul class="nav nav-second-level collapse">
+                        <li><a href="{% url 'project' %}">项目列表</a></li>
+                    </ul>
+                </li>
+            {% endif %}
+            {% if menu.webssh %}
+                <li>
+                    <a href="#"><i class="fa fa-terminal"></i> <span class="nav-label">会话管理</span>
+                        <span class="fa arrow"></span></a>
+                    <ul class="nav nav-second-level collapse">
+                        <li><a href="{% url 'ssh-client' %}" target="_blank">会话连接</a></li>
+                        <li><a href="{% url 'session-list' %}">进行中の会话</a></li>
+                        <li><a href="{% url 'session-log' %}">会话记录</a></li>
+                    </ul>
+                </li>
+            {% endif %}
+
+            {% if menu.task %}
+                <li>
+                    <a href="#"><i class="fa fa-edit"></i> <span class="nav-label">任务管理</span>
+                        <span class="fa arrow"></span></a>
+                    <ul class="nav nav-second-level collapse">
+                        <li><a href="{% url 'run-ans-module' %}">执行模块</a></li>
+                        <li><a href="{% url 'playbooks' %}">Playbook</a></li>
+                        <li><a href="{% url 'roles' %}">Role</a></li>
+                    </ul>
+                </li>
+            {% endif %}
+            {% if menu.plan %}
+                <li>
+                    <a href="#"><i class="fa fa-tasks"></i> <span class="nav-label">计划任务</span>
+                        <span class="fa arrow"></span></a>
+                    <ul class="nav nav-second-level collapse">
+                        <li><a href="{% url 'plan-list' %}">计划任务列表</a></li>
+                        <li>
+                            <a href="#" id="damian">创建计划任务<span class="fa arrow"></span></a>
+                            <ul class="nav nav-third-level">
+                                <li>
+                                    <a href="{% url 'plan-create' %}">创建单条任务</a>
+                                    <a href="{% url 'plan-many-create' %}">创建多条任务</a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            {% endif %}
+            {% comment %}
+            <!-- 所有li均使用统一的格式 -->
+
+
+
+{#            is_superuser是否是超级管理员 ,查看日志也需要权限#}
+            {% if menu.logs %}
+                <li>
+                    <a href="#"><i class="fa fa-list-alt"></i> <span class="nav-label">日志审计</span>
+                        <span class="fa arrow"></span></a>
+                    <ul class="nav nav-second-level collapse">
+                        <li><a href="{% url 'login-log' %}">登录日志</a></li>
+                        <li><a href="{% url 'operating-log' %}">操作日志</a></li>
+                        <li><a href="{% url 'assets-push-user-log' %}">用户推送记录</a></li>
+                        <li>
+                            <a href="{% url 'log-list' %}">计划任务日志</a>
+                        </li>
+                        <li><a href="{% url 'ans-module-log' %}">执行模块操作日志</a></li>
+                        <li><a href="{% url 'playbook-logs' %}">PlayBook执行记录</a></li>
+                        <li><a href="{% url 'role-logs' %}">Role执行记录</a></li>
+                        <li><a href="{% url 'db-logs' %}">数据库操作日志</a></li>
+                    </ul>
+                </li>
+            {% endif %}
+
+            {% if request.user.is_superuser %}
+                <li class="landing_link">
+                    <a target="_blank" href="/xs-backstage/"><i class="fa fa-star"></i> <span
+                            class="nav-label">后台管理</span></a>
+                </li>
+            {% endif %}
+         {% endcomment %}
+        </ul>
+    </div>
+</nav>

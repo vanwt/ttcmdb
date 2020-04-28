@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}
+连接记录
+{% endblock %}
+{% block content %}
+<!-- 路径 -->
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-10">
+        <h2></h2>
+        <ol class="breadcrumb">
+            <li>
+                <a href="/">
+                    会话关联
+                </a>
+            </li>
+            <li class="active">
+                <strong>
+                    命令记录
+                </strong>
+            </li>
+        </ol>
+    </div>
+    <div class="col-sm-2">
+    </div>
+</div>
+
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="panel-options">
+                    <ul class="nav nav-tabs">
+                        <li class="active">
+                            <a class="text-center"><i class="fa fa-laptop"></i> 命令记录 </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="ibox-content">
+                    <div class="dd" id="nestable">
+                        <ol class="dd-list">
+                            {% for clog in code_logs %}
+                            <li class="dd-item">
+                                {{clog.addtime}}--&gt;<b>{{ clog.command }}</b>
+                            </li>
+                            {% endfor %}
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

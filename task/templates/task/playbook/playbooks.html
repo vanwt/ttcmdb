@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block title %}
+剧本列表
+{% endblock %}
+{% block content %}
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-10">
+        <h2></h2>
+        <ol class="breadcrumb">
+            <li>
+                <a>PlayBook</a>
+            </li>
+            <li class="active">
+                <strong>剧本列表</strong>
+            </li>
+        </ol>
+    </div>
+    <div class="col-sm-2">
+    </div>
+</div>
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>
+                        剧本列表
+                    </h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-wrench"></i>
+                        </a>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="" id="content_start"></div>
+                    <div class="uc pull-left m-r-5" style="margin:0 10px 10px 0">
+                        <a href="{% url 'create-playbook' %}" class="btn btn-sm btn-primary btn-create-asset">创建剧本 </a>
+                    </div>
+                    <div class="uc pull-left m-r-5" style="margin:0 10px 10px 0">
+                        <a href="{% url 'run-playbook' %}" class="btn btn-sm btn-primary btn-create-asset">执行剧本 </a>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table class="table table-striped table-bordered table-hover dataTable no-footer"
+                                   id="myTable" role="grid">
+                                <thead>
+                                <tr role="row">
+                                    <th class="text-center sorting">剧本名称</th>
+                                    <th class="text-center sorting">剧本创建用户</th>
+                                    <th class="text-center sorting">创建时间</th>
+                                    <th class="text-center sorting">简介</th>
+                                    <th class="text-center sorting">动作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for pb in pbs %}
+                                <tr class="gradeX odd" role="row">
+                                    <td class="text-center">
+                                        <a>{{ pb.playbook_name }}</a>
+                                    </td>
+                                    <td>
+                                        {{ pb.playbook_user.realname }}
+                                    </td>
+                                    <td class="text-center">
+                                        {{ pb.playbook_time }}
+                                    </td>
+                                    <td class="text-center">
+                                        {{ pb.playbook_desc }}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'playbook-info' pb.id %}" class="btn btn-xs btn-primary">详情</a>
+                                        <a href="{% url 'run-playbook' %}" class="btn btn-xs btn-success">执行剧本</a>
+                                        <a onclick="del({{pb.id}})" class="btn-danger btn-xs btn">删除</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-5"></div>
+                        <div class="col-sm-7"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</div>
+{% endblock %}
+{% block script%}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#myTable').DataTable();
+    });
+
+    function del(id) {
+        layer.confirm("真的要删除吗？", {icon: 3, closeBtn: 2}, function () {
+            var loadT = layer.msg('正在删除,请稍候...', {icon: 16, time: 0, shade: [0.3, '#000']});
+            $.ajax({
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                url: "/task/playbooks/",
+                type: 'DELETE',
+                data: {"id": id},
+                success: function (obj) {
+                    if (obj.code === 200) {
+                        layer.alert(
+                            "删除成功",
+                            {icon: 1},
+                            function () {
+                                layer.closeAll();
+                                window.location.reload()
+                            }
+                        );
+                    } else {
+                        layer.alert("删除过程中出现错误:" + obj.msg, {closeBtn: 0}, function () {
+                            layer.closeAll()
+                        });
+                    }
+                },
+                error: function () {
+                    layer.alert("删除失败", {closeBtn: 0}, function () {
+                        layer.closeAll()
+                    });
+                }
+            });
+        });
+    }
+</script>
+{% endblock %}

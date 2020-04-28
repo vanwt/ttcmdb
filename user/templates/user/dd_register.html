@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8"/>
+    <link rel="apple-touch-icon" sizes="76x76" href="/static/login/img/apple-icon.png">
+    <link rel="icon" type="image/png" href="/static/login/img/favicon.png">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <title>登录</title>
+    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no'
+          name='viewport'/>
+    <!--     Fonts and icons     -->
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700,200" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css"/>
+    <!-- CSS Files -->
+    <link href="/static/login/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="/static/login/css/now-ui-kit.css?v=1.1.0" rel="stylesheet"/>
+    <!-- CSS Just for demo purpose, don't include it in your project -->
+    <link href="/static/login/css/demo.css" rel="stylesheet"/>
+    <!-- Canonical SEO -->
+    <link rel="canonical" href=""/>
+    <!--  Social tags      -->
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+
+
+</head>
+
+<body class="login-page sidebar-collapse">
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg bg-primary fixed-top navbar-transparent " color-on-scroll="400">
+    <div class="container">
+        <div class="dropdown button-dropdown">
+            <a href="#pablo" class="dropdown-toggle" id="navbarDropdown" data-toggle="dropdown">
+                <span class="button-bar"></span>
+                <span class="button-bar"></span>
+                <span class="button-bar"></span>
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href="/xs-backstage/">后台登录</a>
+            </div>
+        </div>
+    </div>
+</nav>
+<!-- End Navbar -->
+<div class="page-header" filter-color="white">
+    <div class="page-header-image" style="background-image:url(/static/login/img/bg5.jpg)"></div>
+    <div class="container">
+        <div class="col-md-4 content-center">
+            <div class="card card-login card-plain">
+                <form class="form" method="post" action="/user/login/">
+                    <div class="header header-primary text-center">
+                        <!-- <img src="assets/img/logo_big.jpg" alt=""> -->
+                        <h1 style="color: white;font-weight: bold;">新商运维管理</h1>
+                    </div>
+                    <div class="content" id="login_container">
+
+                    </div>
+                    <div class="pull-left">
+                        <h6>
+                            <a href="/user/login/" class="link">返回使用账号密码登录</a>
+                        </h6>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="container">
+            <nav>
+                <ul>
+                    <li>
+                        <a href="#">
+                            Version 1.1.4
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="copyright">
+                &copy;
+                <script>
+                    document.write(new Date().getFullYear())
+                </script>
+                新商网络 - 新商运维
+            </div>
+        </div>
+    </footer>
+</div>
+</body>
+<!--   Core JS Files   -->
+<script src="/static/login/js/core/jquery.3.2.1.min.js" type="text/javascript"></script>
+<script src="/static/login/js/core/popper.min.js" type="text/javascript"></script>
+<script src="/static/login/js/core/bootstrap.min.js" type="text/javascript"></script>
+<script src="//g.alicdn.com/dingding/dinglogin/0.0.5/ddLogin.js"></script>
+<!--  Plugin for Switches, full documentation here: http://www.jque.re/plugins/version3/bootstrap.switch/ -->
+<script src="/static/login/js/plugins/bootstrap-switch.js"></script>
+<!--  Plugin for the Sliders, full documentation here: http://refreshless.com/nouislider/ -->
+<script src="/static/login/js/plugins/nouislider.min.js" type="text/javascript"></script>
+<!--  Plugin for the DatePicker, full documentation here: https://github.com/uxsolutions/bootstrap-datepicker -->
+<script src="/static/login/js/plugins/bootstrap-datepicker.js" type="text/javascript"></script>
+<!-- Share Library etc -->
+<script src="/static/login/js/plugins/jquery.sharrre.js" type="text/javascript"></script>
+<!-- Control Center for Now Ui Kit: parallax effects, scripts for the example pages etc -->
+<script src="/static/login/js/now-ui-kit.js?v=1.1.0" type="text/javascript"></script>
+<script>
+
+    var url = encodeURIComponent('http://192.168.0.19:88/user/dingding');
+    // var goto = encodeURIComponent("https://oapi.dingtalk.com/connect/oauth2/sns_authorize?appid=dingoaykaalz2m929ibgbl&response_type=code&scope=snsapi_login&state=STATE&redirect_uri=")+ url;
+    var goto = encodeURIComponent('https://oapi.dingtalk.com/connect/oauth2/sns_authorize?appid=dingoa9lv40xkfqkwtao02&response_type=code&scope=snsapi_login&state=STATE&redirect_uri=' + url);
+    console.log(goto);
+    var obj = DDLogin({
+        id: "login_container",//这里需要你在自己的页面定义一个HTML标签并设置id，例如<div id="login_container"></div>或<span id="login_container"></span>
+        goto: goto,
+        style: "border:none;background-color:#FFFFFF;",
+        width: "300",
+        height: "450"
+    });
+
+    var hanndleMessage = function (event) {
+        var origin = event.origin;
+        console.log("origin", event.origin);
+        if (origin == "https://login.dingtalk.com") { //判断是否来自ddLogin扫码事件。
+            var loginTmpCode = event.data; //拿到loginTmpCode后就可以在这里构造跳转链接进行跳转了
+            console.log("loginTmpCode", loginTmpCode);
+            let url2 = "https://oapi.dingtalk.com/connect/oauth2/sns_authorize?appid=dingoa9lv40xkfqkwtao02&response_type=code&scope=snsapi_login&state=STATE&redirect_uri=" + url + "&loginTmpCode=" + loginTmpCode;
+            window.location.href = url2;
+        }
+    };
+
+    if (typeof window.addEventListener != 'undefined') {
+        window.addEventListener('message', hanndleMessage, false);
+    } else if (typeof window.attachEvent != 'undefined') {
+        window.attachEvent('onmessage', hanndleMessage);
+    }
+
+</script>
+</html>

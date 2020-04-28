@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% block title %}
+项目配置
+{% endblock %}
+{% block content %}
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-10">
+        <h2></h2>
+        <ol class="breadcrumb">
+            <li>
+                <a>资产管理</a>
+            </li>
+            <li class="active">
+                <strong>业务列表</strong>
+            </li>
+        </ol>
+    </div>
+    <div class="col-sm-2">
+    </div>
+</div>
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-lg-3" id="split-left" style="padding-left: 3px; display: none;">
+            <div class="ibox float-e-margins">
+                <div class="ibox-content mailbox-content" style="padding-top: 0;padding-left: 1px">
+                    <div class="file-manager ">
+                        <div class="clearfix"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-12" id="split-right">
+            <div class="mail-box-header">
+                <div class="uc pull-left m-r-5" style="margin:0 10px 10px 0">
+                    <a href="{% url 'create-business' %}" id="add_project"
+                       class="btn btn-sm btn-primary btn-create-asset">
+                        新增业务线 </a></div>
+                <form action="" method="get">
+                    {% for f in filter.form %}
+                    <div class="uc pull-left m-r-5" style="margin:-5px 0 10px 0"><span style="font-size: 13px;"><b>{{ f.label }}</b></span><a
+                            class="btn btn-sm">
+                        {{f}}
+                    </a>
+                    </div>
+                    {% endfor %}
+                    <div class="uc pull-left m-r-5" style="margin:0 10px 10px 0">
+                        <button type="submit"
+                                class="btn btn-sm btn-success"> 搜索
+                        </button>
+                    </div>
+                    <a href="{% url 'business' %}" class="btn btn-primary btn-sm">全部</a>
+                </form>
+                <div id="asset_list_table_wrapper" class="dataTables_wrapper form-inline dt-bootstrap no-footer">
+                    <table class="footable table toggle-arrow-tiny table-striped table-bordered table-hover default dataTable no-footer footable-loaded breakpoint"
+                           id="myTable" style="width: 100%;" role="grid">
+                        <thead>
+                        <tr role="row">
+                            <th class="text-center sorting" tabindex="0" aria-controls="asset_list_table"
+                                rowspan="1" colspan="1"
+                            >id
+                            </th>
+                            <th class="text-center sorting" tabindex="0" aria-controls="asset_list_table"
+                                rowspan="1" colspan="1"
+                            >业务名
+                            </th>
+                            <th class="text-center sorting" tabindex="0" aria-controls="asset_list_table"
+                                rowspan="1" colspan="1"
+                            >运行环境
+                            </th>
+                            <th class="text-center sorting_disabled" rowspan="1" colspan="1" aria-label="激活中"
+                            >说明
+                            </th>
+                            <th class="text-center sorting" tabindex="0" aria-controls="asset_list_table"
+                                rowspan="1" colspan="1"
+                            >创建时间
+                            </th>
+
+                            <th class="text-center sorting_disabled" rowspan="1" colspan="1"
+                            >动作
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% csrf_token %}
+                        {% for b in business_list %}
+                        <tr role="row" class="odd">
+                            <td class=" text-center">
+                                {{ b.id }}
+                            </td>
+
+                            <td class=" text-center">
+                                {{ b.business_name }}
+                            </td>
+                            <td class=" text-center">
+                                {{ b.business_env }}
+                            </td>
+                            <td class=" text-center">
+                                {{ b.business_desc }}
+                            </td>
+                            <td class=" text-center">
+                                {{ b.create_time }}
+                            </td>
+
+                            <td class=" text-center">
+                                <a href="{% url 'business-update' b.id %}" class="btn btn-xs btn-primary m-l-xs ">修改</a>
+                                <button type="buttons" class="btn btn-xs btn-danger m-l-xs" onclick="del({{b.id}})">删除
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr role="row" class="odd">
+                            <td colspan="11" class="text-center">没有数据</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="row m-t">
+                        <div class="col-md-12">
+                            <div class="dataTables_paginate paging_simple_numbers" id="asset_list_table_paginate">
+                                <!--{% include 'page.html' %}-->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#myTable').DataTable();
+    });
+</script>
+<script type="text/javascript">
+    function del(id) {
+        layer.confirm("确定要删除吗？",
+            {icon: 3, closeBtn: 2},
+            function () {
+                $.ajax({
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    url: "/api/v1/project/business/" + id + "/",
+                    type: 'DELETE',
+                    success: function (data) {
+                        if (data.code === 200) {
+                            layer.alert(
+                                "删除成功",
+                                {icon: 1},
+                                function () {
+                                    layer.closeAll();
+                                    window.location.reload()
+                                }
+                            );
+                        } else {
+                            layer.alert("删除过程中出现错误:" + data.msg, {closeBtn: 0});
+                        }
+                    },
+                    error: function () {
+                        layer.alert("删除出现错误", {closeBtn: 0});
+                    }
+                });
+            });
+    }
+</script>
+{% endblock %}

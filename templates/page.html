@@ -1,0 +1,26 @@
+{% if page_obj %}
+    <ul class="pagination pull-right">
+        {% if page_obj.has_previous %}
+            <li class="footable-page-arrow"><a href="?page=1">«</a></li>
+        {% else %}
+            <li class="footable-page-arrow disabled"><a>«</a></li>
+        {% endif %}
+        {% if page_obj.has_previous %}
+            <li class="footable-page-arrow"><a href="?page={{ page_obj.previous_page_number }}">‹</a></li>
+        {% else %}
+            <li class="footable-page-arrow disabled"><a>‹</a></li>
+        {% endif %}
+
+        <li class="footable-page active"><a >{{ page_obj.number }}</a></li>
+        {% if page_obj.has_next %}
+            <li class="footable-page-arrow"><a data-page="next" href="?page={{ page_obj.next_page_number }}">›</a></li>
+        {% else %}
+            <li class="footable-page-arrow disabled"><a>›</a></li>
+        {% endif %}
+        {% if page_obj.has_next %}
+            <li class="footable-page-arrow"><a href="?page={{ paginator.num_pages }}">»</a></li>
+        {% else %}
+            <li class="footable-page-arrow disabled"><a>»</a></li>
+        {% endif %}
+    </ul>
+{% endif %}

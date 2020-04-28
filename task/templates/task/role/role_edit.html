@@ -1,0 +1,396 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block title %}
+Role在线修改
+{% endblock %}
+
+{% block basescript %}
+<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+<script src="/static/js/layer/layer.js"></script>
+<link rel="stylesheet" href="/static/js/ztree/zTreeStyle/zTreeStyle.css" type="text/css">
+<script type="text/javascript" src="/static/js/ztree/jquery.ztree.all.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.4/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.4/ext-language_tools.js" charset="utf-8"></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-12">
+        <h2></h2>
+        <ol class="breadcrumb">
+            <li>
+                <a>任务管理</a>
+            </li>
+            <li class="active">
+                <strong>Role在线添加</strong>
+            </li>
+        </ol>
+    </div>
+</div>
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="row">
+                <button type="button" class="btn btn-success btn-sm" id="addParent" onclick="return false;">
+                    增加父节点
+                </button>
+                <button type="button" class="btn btn-success btn-sm" id="addLeaf" onclick="return false;">增加子节点
+                </button>
+                <button type="button" class="btn btn-warning btn-sm" id="edit" onclick="return false;">编辑名称
+                </button>
+                <button type="button" class="btn btn-danger btn-sm" id="remove" onclick="return false;">删除节点
+                </button>
+                <button type="button" class="btn btn-github btn-sm" id="upload" onclick="return false;">上传文件</button>
+            </div>
+            <div class="row">
+                <div class="box">
+                    <ul id="roleTree" class="ztree" style="float: left"></ul>
+                </div>
+            </div>
+            <div class="row" id="uprow" style="display:none;">
+                <div class="mail-box-header">
+                    <div class="row">
+                        <div class="col-sm-5">
+                            <input class="fileinput" type="file" value="选择图片" id="file">
+                        </div>
+                        <div class="col-sm-7">
+                            <button class="btn btn-success btn-xs" id="close_up">关闭</button>
+                            <button class="btn btn-primary btn-xs" id="load">上传</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="margin-top: 10px;">
+                <div class="mail-box-header">
+                    <a href="{% url 'roles' %}">
+                        <button type="button" class="btn btn-primary btn-sm">编辑完成</button>
+                    </a>
+                    <a href="javascript:history.back()">
+                        <button type="button" class="btn btn-danger btn-sm">返回上一页</button>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+        <div class="col-md-9">
+            <div class="mail-box-header" style="width: 100%">
+                <div class="box-header relative_path" style="padding: 3px;">
+                </div>
+                <div id="editor" style="height: 650px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block script %}
+<script>
+    window.define = ace.define;
+    let setting = {
+        view: {
+            selectedMulti: false
+        },
+        edit: {
+            enable: true,
+            showRemoveBtn: false,
+            showRenameBtn: false
+        },
+        async: {
+            enable: true,
+            url: "{% url 'get-detail' id %}",
+            autoParam: ["name", "p_name"],
+        },
+        data: {
+            keep: {
+                parent: true,
+                leaf: true
+            },
+            simpleData: {
+                enable: true
+            }
+        },
+        callback: {
+            onClick: onClick,
+            onAsyncError: onAsyncError,
+            beforeRename: beforeRename,
+        },
+    };
+
+    //
+    // function beforeRemove() {
+    //     return confirm("确认删除 节点 吗");
+    // }
+    //
+    function beforeRename(treeId, treeNode, newName) {
+        // 编辑名称或修改触发回调
+        if (newName.length === 0) {
+            layer.alert("修改失败：节点名不能为空" + data.error, {icon: 2, closeBtn: 0});
+            // 获取全局对象，设置返回源文件名
+            let zTree = $.fn.zTree.getZTreeObj("roleTree");
+            // 由于显示的太快看不到报错，加一个延时
+            setTimeout(function () {
+                zTree.editName(treeNode)
+            }, 15);
+            // 返回false 将不会提交重命名
+            return false;
+        } else {
+
+            $.ajax({
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                url: "{% url 'node-view' %}",
+                type: 'POST',
+                data: {
+                    name: treeNode.name,
+                    p_name: treeNode.p_name,
+                    isParent: treeNode.isParent,
+                    new_name: newName
+                },
+                success: function (res) {
+                    if (res.code !== 200) {
+                        layer.alert("修改失败:" + res.error, {icon: 2, closeBtn: 0});
+                    }
+                },
+                error: function (data) {
+                    layer.alert("执行过程中出现错误:" + data.responseText, {icon: 2, closeBtn: 0});
+                }
+            });
+            // 如果这个节点是父节点，则把下面的所有子节点的p_name更新
+            return true;
+        }
+    }
+
+    let newCount = 1;
+
+    function add(e) {
+        // 是通过全局获取对象
+        // is Parent 判断是添加的父节点还是子节点， True 是父 false是子节点
+        // 然后回去当前选中的对象
+        // 选中的对象十一个列表，取第一1个
+        let zTree = $.fn.zTree.getZTreeObj("roleTree"),
+            isParent = e.data.isParent,
+            nodes = zTree.getSelectedNodes(),
+            treeNode = nodes[0];
+        // 如果0没有则 表示没有选中一个节点
+        if (treeNode) {
+            // 如果isParent是True 则为文件夹，如果为false 是文件
+            if (treeNode.isParent) {
+                // 是文件夹才能执行，因为子节点不能创建任何
+                console.log('节点ID', treeNode.id, '节点路径', treeNode.p_name);
+                // 添加父节点
+                treeNode = zTree.addNodes(treeNode, {
+                    id: (100 + newCount),
+                    pId: treeNode.id,
+                    isParent: isParent,
+                    name: "new node" + (newCount++),
+                    p_name: treeNode.p_name + '/' + treeNode.name
+                });
+                // 调用该方法让节点进入编辑名称的状态
+                zTree.editName(treeNode[0]);
+                // 修改之后节点已经更新，再回调中
+            } else {
+                layer.alert("添加失败，节点被锁定", {icon: 2, closeBtn: 0});
+            }
+        } else {
+            layer.alert("添加失败: 请先选择一个节点", {icon: 2, closeBtn: 0});
+        }
+    }
+
+    function edit() {
+        // 获取全局对象
+        // 获取选中的节点
+        // 取出系欸DNA，判断是否选中
+        let zTree = $.fn.zTree.getZTreeObj("roleTree"),
+            nodes = zTree.getSelectedNodes(),
+            treeNode = nodes[0];
+        if (nodes.length === 0) {
+            layer.alert("添加失败: 请先选择一个节点", {icon: 2, closeBtn: 0});
+            return;
+        }
+        // 重新命名
+        // 如果重新命名父节点，那么子节点的p_name也要变动
+        zTree.editName(treeNode);
+        // 应该发送请求 ，但是此函数执行没有返回值，而触发callback rename
+        // --------------------
+    }
+
+    function remove(e) {
+        // 获取全局对下给你，获取选中节点，
+        //取出节点，判断是否选中
+        let zTree = $.fn.zTree.getZTreeObj("roleTree"),
+            nodes = zTree.getSelectedNodes(),
+            treeNode = nodes[0];
+        if (nodes.length === 0) {
+            layer.alert("删除失败: 请先选择一个节点", {icon: 2, closeBtn: 0});
+            return;
+        }
+        // 如果选中，就发送 请求删除
+        $.ajax({
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            url: "{% url 'node-view' %}",
+            type: 'DELETE',
+            data: {name: treeNode.name, p_name: treeNode.p_name, isParent: treeNode.isParent},
+            success: function (res) {
+                if (res.code === 200) {
+                    // 删除节点，如果第二个参数为true 表示删除时触发callback回调，false 为不触发
+                    zTree.removeNode(treeNode, false);
+                    layer.alert("删除成功", {icon: 1, closeBtn: 0}, function () {
+                        window.location.reload()
+                    });
+                } else {
+                    layer.alert("删除错误" + res.error, {icon: 2, closeBtn: 0});
+                }
+            },
+            error: function (data) {
+                layer.alert("删除失败: " + data.responseText, {icon: 2, closeBtn: 0});
+            }
+        });
+    }
+
+    // 上传文件
+    function upload() {
+        // 获取全局对象
+        // 获取选中的节点
+        // 取出系欸DNA，判断是否选中
+        let zTree = $.fn.zTree.getZTreeObj("roleTree"),
+            nodes = zTree.getSelectedNodes(),
+            treeNode = nodes[0];
+        if (nodes.length === 0 || treeNode.isParent === false) {
+            layer.alert("上传失败: 请先选择一个节点", {icon: 2, closeBtn: 0});
+            return;
+        }
+        $("#uprow").css("display", "block");
+        $("#close_up").click(function () {
+            $("#uprow").css("display", "none");
+        });
+    }
+
+    // 点击上传后上传文件
+    $("#load").click(function () {
+        let zTree = $.fn.zTree.getZTreeObj("roleTree"),
+            nodes = zTree.getSelectedNodes(),
+            treeNode = nodes[0];
+        if (nodes.length === 0 || treeNode.isParent === false) {
+            layer.alert("上传失败: 请先选择一个节点", {icon: 2, closeBtn: 0});
+            return;
+        }
+        var formData = new FormData();
+        var file = $("#file")[0].files[0];
+        console.log('文件', file);
+        formData.append("file", file); //传给后台的file的key值是可以自己定义的
+        formData.append("p_name", treeNode.p_name);
+        formData.append("name", treeNode.name);
+        console.log(treeNode.p_name);
+        console.log(treeNode.name);
+        $.ajax({
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            url: "{% url 'task-upload' %}",
+            type: 'POST',
+            cache: false,
+            processData: false,
+            contentType: false,
+            data: formData,
+            dataType: 'json',
+            success: function (data) {
+                // 返回文件名
+                // 用文件名创建新的文件
+                treeNode = zTree.addNodes(treeNode, {
+                    id: (100 + newCount),
+                    pId: treeNode.id,
+                    isParent: false,
+                    name: data.f_name,
+                    p_name: treeNode.p_name + '/' + treeNode.name
+                });
+                layer.alert(
+                    "上传成功",
+                    {icon: 1},
+                    function () {
+                        layer.closeAll();
+                        window.location.reload()
+                    }
+                );
+            },
+            error: function (err) {
+                layer.alert("上传失败: " + data.responseText, {icon: 2, closeBtn: 0});
+            }
+        });
+    });
+
+    function onClick(event, treeId, treeNode, clickFlag) {
+        $("#uprow").css("display", "none");
+        // 点击事件，如果点击父节点将没有效果
+        if (!treeNode.isParent) {
+            let relative_path = $('.relative_path');
+            console.log(relative_path, "path");
+            // 这个时要展示文本内容的地方
+            // 每次点击后清空
+            relative_path.html('');
+            // 追加一个 标签显示当前的路径 父路径+ 子路径
+            console.log("路径", treeNode.p_name, treeNode.name);
+            relative_path.append(`<p class="text-green" style="text-align: center;margin-bottom: 0;float: left;">当前文件是：${treeNode.p_name}/${treeNode.name}</p>-----<button type="button" class="btn btn-success btn-xs save"> 确认保存</button>`);
+
+            // 生成ace 编辑器
+            ace.require("ace/ext/language_tools");
+            var editor = ace.edit("editor");
+            editor.setOptions({
+                //      enableBasicAutocompletion: true,
+                //      enableSnippets: true,
+                enableLiveAutocompletion: false,//智能补全
+            });
+            editor.setTheme("ace/theme/monokai");//monokai模式是自动显示补全提示
+            //https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.4/keybinding-sublime.js
+            editor.getSession().setMode("ace/mode/yaml");//语言
+            editor.setFontSize(16);
+            $.ajax({
+                url: "{% url 'node-view' %}",
+                type: 'GET',
+                data: {p_name: treeNode.p_name, name: treeNode.name},
+                success: function (res) {
+                    if (res.code === 200) {
+                        editor.setValue(res.content);
+                    } else {
+                        layer.alert("查找失败: " + res.error, {icon: 2, closeBtn: 0});
+                    }
+                }
+            });
+            // 如果点击了保存 就提交会后台
+            $('.save').on('click', function () {
+                $.ajax({
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    url: "{% url 'node-view' %}",
+                    type: 'PUT',
+                    data: {content: editor.getSession().getValue(), p_name: treeNode.p_name, name: treeNode.name},
+                    success: function (res) {
+                        if (res.code === 200) {
+                            layer.alert(
+                                "编辑成功",
+                                {icon: 1},
+                                function () {
+                                    layer.closeAll();
+                                }
+                            );
+                        } else {
+                            layer.alert("编辑失败: " + res.error, {icon: 2, closeBtn: 0});
+                        }
+                    }
+                })
+            });
+        }
+    }
+
+    function onAsyncError() {
+        layer.alert("失败: 服务器Role文件不存在，请删除数据记录", {icon: 2, closeBtn: 0});
+    }
+
+    $(document).ready(function () {
+
+        zTreeObj = $.fn.zTree.init($("#roleTree"), setting);
+        $("#addParent").bind("click", {isParent: true}, add);
+        $("#addLeaf").bind("click", {isParent: false}, add);
+        $("#edit").bind("click", edit);
+        $("#remove").bind("click", remove);
+        $("#upload").bind("click", upload);
+    });
+</script>
+{% endblock %}

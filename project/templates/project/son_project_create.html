@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block left-nav %}
+{% endblock %}
+{% block top-nav %}
+{% endblock %}
+{% block title %}
+新增项目
+{% endblock %}
+{% block content %}
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-10">
+        <h2></h2>
+        <ol class="breadcrumb">
+            <li>
+                <a>项目管理</a>
+            </li>
+            <li class="active">
+                <strong>新增项目</strong>
+            </li>
+        </ol>
+    </div>
+    <div class="col-sm-2">
+    </div>
+</div>
+<div class="modal-content" style="margin-top: 10px;margin-bottom: 45px;">
+    <div class="modal-header">
+        <h4 class="modal-title" id="CeleryTaskModalLabel">新增项目</h4>
+    </div>
+    <div class="modal-body">
+        <form action="" class="main form-horizontal" id="scon" method="post">
+            <fieldset>
+                {% csrf_token %}
+                {% for foo in form %}
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">{{ foo.label }}</label>
+                    <div class="col-sm-6">
+                        {{ foo }}
+                        {% if foo.errors %}
+                        <p style="margin-top: 10px;margin-bottom: -10px">{{ foo.errors }}</p>
+                        {% elif foo.help_text %}
+                        <b style="color: red">{{foo.help_text}}</b>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+                <div class="modal-footer">
+                    <button type="button" id="sub" class="btn btn-primary">提交</button>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    $("#sub").click(function () {
+        // 发送post提交请求,如果返回200则发送到父窗口消息
+        var url = "{% url 'son-project-create' %}";
+        $.ajax({
+            url: url,
+            async: false,
+            type: "POST",
+            data: $('#scon').serialize(),
+            success: function (data) {
+                if (data.code === 200) {
+                    alert("添加成功");
+                    // 成功之后，给父页面返回，然后子页面关闭
+                    var sel = $("#id_project", window.opener.document);
+                    var html = $('<option value="' + data.id + '" selected >' + data.name + '</option>');
+                    sel.append(html);
+                    // $(window.opener.document.getElementById('id_project')).selectpicker('refresh');
+
+                    //刷新
+
+                    //关闭
+                    window.close()
+                } else {
+                    alert("添加失败" + data.error);
+                    console.log(data.error)
+                }
+            },
+            error: function () {
+                alert("添加失败")
+            }
+        })
+    })
+</script>
+{% endblock %}

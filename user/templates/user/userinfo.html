@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block title %}
+用户信息
+{% endblock %}
+{% block content %}
+<!-- 路径 -->
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-10">
+        <h2></h2>
+        <ol class="breadcrumb">
+            <li>
+                <a href="/">
+                    仪表盘
+                </a>
+            </li>
+            <li class="active">
+                <strong>
+                    个人信息
+                </strong>
+            </li>
+        </ol>
+    </div>
+    <div class="col-sm-2">
+    </div>
+</div>
+
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="panel-options">
+                    <ul class="nav nav-tabs">
+                        <li class="active">
+                            <a class="text-center"><i class="fa fa-laptop"></i> 个人信息 </a>
+                        </li>
+                        <li class="pull-right">
+                            <a class="btn btn-outline btn-default"><i class="fa fa-edit"></i>设置</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="tab-content">
+                    <div class="col-sm-8" style="padding-left: 0;">
+                        <div class="ibox float-e-margins">
+                            <div class="ibox-title">
+                                <span class="label label-primary"><b>{{ user.username}}</b></span>
+                                <div class="ibox-tools">
+                                    <a class="collapse-link">
+                                        <i class="fa fa-chevron-up"></i>
+                                    </a>
+                                    <a class="close-link">
+                                        <i class="fa fa-times"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="ibox-content" style="display: block;">
+                                <div class="text-left">
+                                    <table class="table">
+                                        <tbody>
+                                        <tr class="no-borders-tr">
+                                            <td colspan="2">
+                                                <img src="{{ user.avatar }}" class="img-circle"
+                                                     width="64" height="64">
+                                            </td>
+                                        </tr>
+                                        <tr class="no-borders-tr">
+                                            <td class="text-navy">用户名</td>
+                                            <td>{{ user.username | capfirst }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-navy">真实姓名</td>
+                                            <td>
+                                                {% if user.realname %}
+                                                {{ user.realname }}
+                                                {% else %}
+                                                未填写
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-navy">角色</td>
+                                            <td>
+                                                {% if user.is_superuser %}
+                                                管理员
+                                                {% else %}
+                                                普通用户
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-navy">邮箱</td>
+                                            <td>{% if user.email %}
+                                                {{ user.email }}
+                                                {% else %}
+                                                未填写
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-navy">激活中</td>
+                                            {% if user.is_active %}
+                                            <td>激活</td>
+                                            {% else %}
+                                            <td>未激活</td>
+                                            {% endif %}
+                                        </tr>
+                                        <tr>
+                                            <td class="text-navy">最后登录</td>
+                                            <td>{{ user.last_login }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-navy">用户组</td>
+                                            <td>
+                                                {% for g in user.groups.all %}
+                                                &ensp;{{ g.name }}&ensp;
+                                                {% empty %}
+                                                未加入任何组
+                                                {% endfor %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-navy">电话</td>
+                                            <td>
+                                                {{user.phone}}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-navy">备注:</td>
+                                            {% if user.info %}
+                                            <td>{{user.info}}</td>
+                                            {% else %}
+                                            <td>无</td>
+                                            {% endif %}
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-4" style="padding-left: 0;padding-right: 0">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <i class="fa fa-info-circle"></i> 快速修改
+                        </div>
+                        <div class="panel-body">
+                            <table class="table">
+                                <tbody>
+                                <tr class="no-borders-tr">
+                                    <td>更改密码:</td>
+                                    <td>
+                                            <span class="pull-right">
+                                                <a type="button" class="btn btn-primary btn-xs" style="width: 54px"
+                                                   href="/user/password/update/">更新</a>
+                                            </span>
+                                    </td>
+                                </tr>
+                                <tr class="no-borders-tr">
+                                    <td>修改信息:</td>
+                                    <td>
+                                            <span class="pull-right">
+                                                <a type="button" class="btn btn-primary btn-xs" style="width: 54px"
+                                                   href="/user/update/{{ user.id }}/">更新</a>
+                                            </span>
+                                    </td>
+                                </tr>
+                                <tr class="no-borders-tr">
+                                    <td><a onclick="javascript:layer.alert('请联系管理员为你重置密码!',{closeBtn:0})">重置密码</a></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block content %}
+
+    <div class="row  border-bottom white-bg dashboard-header">
+
+        <div class="col-md-4">
+            <h2>Welcome 用户{{ request.user.realname }}</h2>
+            <small>最近操作</small>
+            <ul class="list-group clear-list m-t">
+                {% for log in operating_log %}
+                    <li class="list-group-item     ">
+                                <span class="pull-right">
+                                    {{ log.create_time }}
+                                </span>
+                        <span class="label label-info">{{ forloop.counter }}</span> {{ log.operating }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <!-- 图表 -->
+        <div class="col-md-4">
+            <div class="row text-left">
+                <div class="col-xs-12" style="margin-top: 30px">
+                    <div id="server_map" style="width: 90%;height: 260px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="wrapper wrapper-content">
+        <div class="row">
+            <div class="col-sm-3">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <span class="label label-success pull-right">Users</span>
+                        <h5>用户总数</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <h1 class="no-margins"><a href="/user/list/">{{ user_count }}</a></h1>
+                        <small>全部用户</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <span class="label label-info pull-right">Hosts</span>
+                        <h5>主机总数</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <h1 class="no-margins"><a href="/assets/list/">{{ assets_count }}</a></h1>
+                        <small>全部主机</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <span class="label label-primary pull-right">Online</span>
+                        <h5>在线用户</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <h1 class="no-margins"><a> <span id="online_users"></span>
+                            {{ online }}</a></h1>
+                        <small>在线用户</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <span class="label label-info pull-right">Session</span>
+                        <h5>在线会话数</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <h1 class="no-margins">{{ session_count }}</h1>
+                        <small>在线会话</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script src="/static/js/echarts.min.js"></script>
+    <script>
+        var Chart2 = echarts.init(document.getElementById('server_map'), 'light');
+
+        // 指定图表的配置项和数据
+        var option = {
+            title: {
+                text: '服务器概览'
+            },
+            tooltip: {},
+            legend: {
+                data: ['数量']
+            },
+            xAxis: {
+                data: ["物理机", "虚拟机", "云主机"]
+            },
+            yAxis: {},
+            series: [{
+                name: '数量',
+                type: 'bar',
+                data: {{server_data}}
+            }]
+        };
+        // 使用刚指定的配置项和数据显示图表。
+        Chart2.setOption(option);
+
+    </script>
+{% endblock %}
+

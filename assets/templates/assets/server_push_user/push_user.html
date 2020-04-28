@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}
+用户推送列表
+{% endblock %}
+{% block content %}
+<!-- 路径 -->
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-10">
+        <h2></h2>
+        <ol class="breadcrumb">
+            <li>
+                <a>
+                    资产管理
+                </a>
+            </li>
+            <li class="active">
+                <strong>
+                    用户推送记录
+                </strong>
+            </li>
+        </ol>
+    </div>
+    <div class="col-sm-2">
+    </div>
+</div>
+<div class="wrapper wrapper-content animated fadeInRight ecommerce">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="mail-box-header">
+                <div class="uc pull-left m-r-5" style="margin:0 10px 10px 0">
+                    <a href="{% url 'assets-system-user' %}" class="btn btn-sm btn-primary btn-create-asset">返回 </a>
+                </div>
+                  <form action="" method="get">
+                    {% for f in filter.form %}
+                    <div class="uc pull-left m-r-5" style="margin:-5px 0 10px 0"><span style="font-size: 13px;"><b>{{ f.label }}</b></span><a
+                            class="btn btn-sm">
+                        {{f}}
+                    </a>
+                    </div>
+                    {% endfor %}
+                    <div class="uc pull-left m-r-5" style="margin:0 10px 10px 0">
+                        <button type="submit"
+                                class="btn btn-sm btn-success"> 搜索
+                        </button>
+                    </div>
+                    <a href="{% url 'assets-push-user-log' %}" class="btn btn-primary btn-sm">全部</a>
+                </form>
+                <div id="asset_list_table_wrapper" class="dataTables_wrapper form-inline dt-bootstrap no-footer">
+                    <table class="footable table toggle-arrow-tiny table-striped table-bordered table-hover default dataTable no-footer footable-loaded breakpoint"
+                           id="asset_list_table" style="width: 100%;" role="grid">
+                        <thead>
+                        <tr role="row">
+                            <th class="text-center sorting" tabindex="0" rowspan="1" colspan="1">推送用户名</th>
+                            <th class="text-center sorting" tabindex="0" rowspan="1" colspan="1">推送主机</th>
+                            <th class="text-center sorting_disabled" rowspan="1" colspan="1">推送者</th>
+                            <th class="text-center sorting_disabled" rowspan="1" colspan="1">推送时间</th>
+                            <!--<th class="text-center sorting_disabled" rowspan="1" colspan="1">动作</th>-->
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% csrf_token %}
+                        {% for pu in filter.qs %}
+                        <tr role="row" class="odd">
+                            <td class=" text-center">
+                                {{ pu.username }}
+                            </td>
+                            <td class=" text-center">
+                                <span>{{pu.host}}</span><br>
+                            </td>
+                            <td class=" text-center">
+                                {{ pu.pusher.realname }}
+                            </td>
+                            <td class=" text-center">
+                                {{ pu.push_time }}
+                            </td>
+                            <!--<td class=" text-center">-->
+                                <!--<button class="btn btn-danger btn-xs" onclick="">删除</button>-->
+                            <!--</td>-->
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="row m-t">
+                        <div class="col-md-12">
+                            <div class="dataTables_paginate paging_simple_numbers" id="asset_list_table_paginate">
+                                {% include 'page.html' %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

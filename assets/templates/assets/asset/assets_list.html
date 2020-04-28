@@ -1,0 +1,415 @@
+{% extends 'base.html' %}
+{% block title %}
+    资产列表
+{% endblock %}
+{% block css %}
+    <link href="/static/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+{% endblock %}
+{% block basescript %}
+    <link rel="stylesheet" href="/static/ztree/css/metroStyle/metroStyle.css" type="text/css">
+    <link rel="stylesheet" href="/static/css/plugins/datetime/jquery.datetimepicker.css">
+    <script type="text/javascript" src="/static/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/static/js/ztree/jquery.ztree.all.js"></script>
+    <script src="/static/js/layer/layer.js"></script>
+    <script src="/static/js/plugins/toastr/toastr.min.js"></script>
+    <!-- Toastr script -->
+
+{% endblock %}
+{% block content %}
+
+    <div class="row wrapper border-bottom white-bg page-heading">
+        <div class="col-sm-10">
+            <h2></h2>
+            <ol class="breadcrumb">
+                <li>
+                    <a>资产管理</a>
+                </li>
+                <li class="active">
+                    <strong>资产列表</strong>
+                </li>
+            </ol>
+        </div>
+        <div class="col-sm-2">
+        </div>
+    </div>
+    <div class="wrapper wrapper-content">
+        <div class="alert alert-info help-message">
+            左侧是资产树，右侧是属于该节点下的资产，&ensp;导入数据请根据导出格式填入<span style="color: red">文本类型值</span>,填入其他均会导致导入数据与表格不符
+            <br> 激活： 已激活表示该资产可以Ping通，未激活为无法Ping通; 状态： 上线表示可以运行，故障中表示获取不到服务器信息
+        </div>
+        <div class="row">
+            <div class="col-lg-2" id="split-left" style="padding-left: 3px;display: block">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-content mailbox-content" style="padding-top: 0;padding-left: 1px">
+                        <div class="file-manager ">
+                            <div id="assetTree" class="ztree">
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-10 animated fadeInRight" id="split-right">
+                <div class="tree-toggle" style="display: block">
+                    <div class="btn btn-sm btn-primary tree-toggle-btn" onclick="toggle()">
+                        <i class="fa fa-angle-left fa-x" id="toggle-icon"></i>
+                    </div>
+                </div>
+                <div class="mail-box-header" style="width: 100%">
+                    <div class="uc pull-left m-r-5" style="margin:0 10px 10px 0">
+                        <a href="/assets/create/" class="btn btn-sm btn-primary btn-create-asset">创建资产 </a>
+                    </div>
+
+                    <form action="" method="get">
+
+                        <div class="uc pull-left m-r-5" style="margin:-5px 0 10px 0"><span
+                                style="font-size: 13px;"><b>IP</b></span><a
+                                class="btn btn-sm">
+                            <input type="text" name="ip" class="form-control">
+                        </a>
+                        </div>
+                        <div class="uc pull-left m-r-5" style="margin:0 10px 10px 0">
+                            <button type="submit"
+                                    class="btn btn-sm btn-success"> 搜索
+                            </button>
+                        </div>
+                        <a href="{% url 'assets-list' %}" class="btn btn-primary btn-sm">全部</a>
+                    </form>
+                    <!--<div class="uc pull-left m-r-5" style="margin:-5px 0 10px 0"><a class="btn btn-sm btn-create-asset">-->
+                    <!--<input type="search" class="form-control input-sm" placeholder=""-->
+                    <!--aria-controls="asset_list_table"></a>-->
+                    <!--</div>-->
+                    <!--<div class="uc pull-left m-r-5" style="margin:0 10px 10px 0"><a-->
+                    <!--class="btn btn-sm btn-success btn-create-asset"> 搜索 </a></div>-->
+                    <table class="footable table toggle-arrow-tiny table-striped table-bordered "
+                           id="asset_list_table" style="width: 100%;" role="grid"
+                           aria-describedby="asset_list_table_info">
+                        <thead>
+                        <tr role="row">
+                            <!--<th class="text-center sorting_disabled"-->
+                            <!--style="width: 5%;"><input type="checkbox" class="ipt_check_all"></th>-->
+                            <th class="text-center sorting">资产类型</th>
+                            <th class="text-center sorting">IP</th>
+                            <th class="text-center sorting">内存/G</th>
+                            <th class="text-center sorting">硬盘容量/G</th>
+                            <th class="text-center sorting">CPU</th>
+                            <th class="text-center sorting">核心</th>
+                            <th class="text-center sorting_disabled">可联通</th>
+                            <th class="text-center sorting_disabled">状态
+                            </th>
+                            <th class="text-center sorting_disabled" style="width: 25%">动作
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for asset in assets_list %}
+                            <tr role="row" class="odd">
+                                <!--<td class=" text-center">-->
+                                <!--<input type="checkbox" class="text-center ipt_check" id="change-assets">-->
+                                <!--</td>-->
+                                <td class=" text-center">
+                                    <a href="{% url 'assets-info' asset.id %}">
+                                        <b>{{ asset.get_asset_type_display }}</b>
+                                    </a>
+                                </td>
+                                <td class=" text-center">
+                                    <button class="btn btn-xs btn-primary" href=""
+                                            onclick="showenv('{{ asset.id }}')">
+                                        {{ asset.ip }}
+                                    </button>
+                                </td>
+                                <td class=" text-center">
+                                    {{ asset.ram |default:"暂无信息" }}
+                                </td>
+                                <td class=" text-center">
+                                    {{ asset.disk | default:"暂无信息" }}
+                                </td>
+                                <td class=" text-center">
+                                    {{ asset.cpu | default:"暂无信息" }}
+                                </td>
+                                <td class=" text-center">
+                                    {{ asset.logical_cpu | default:"暂无信息" }}
+                                </td>
+                                <td class="text-center">
+                                    {% if asset.is_pass == 0 %}
+                                        <button type="button" class="btn btn-danger btn-xs" data-toggle="popover"
+                                                data-placement="auto right"
+                                                data-content="{{ asset.unicom_note }}">
+                                            <i class=" fa fa-times"></i>
+                                        </button>
+                                    {% elif asset.is_pass == 1 %}
+                                        <button class="btn btn-primary btn-xs"><i class="fa fa-check"></i></button>
+                                    {% else %}
+                                        <button type="button" class="btn btn-warning btn-xs" data-toggle="popover"
+                                                data-placement="auto right"
+                                                data-content="{{ asset.unicom_note }}">
+                                            <i class=" fa fa-exclamation-triangle"></i>
+                                        </button>
+                                    {% endif %}
+
+
+                                </td>
+                                <td class=" text-center">
+                                    {{ asset.get_status_display }}
+                                </td>
+                                <td class=" text-center">
+                                    <a href="{% url 'assets-info' asset.id %}"
+                                       class="btn btn-xs btn-default">详情</a>
+                                    <a href="{% url 'assets-update' asset.id %}"
+                                       class="btn btn-xs btn-warning">修改</a>
+                                    <a class="btn btn-xs btn-info" onclick="hardware_update('{{ asset.id }}')">信息收集</a>
+                                    <a onclick="test_ping('{{ asset.id }}','{{ asset.ip }}')"
+                                       class="btn btn-xs btn-success">Ping</a>
+                                    {% if menu.webssh %}
+                                    {% endif %}
+                                    {% if request.user.is_superuser %}
+                                        <button class="btn btn-xs btn-danger m-l-xs btn_asset_delete"
+                                                onclick="del('{{ asset.id }}')">
+                                            删除
+                                        </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="row m-t">
+                        <div class="col-md-12">
+                            <div class="dataTables_paginate paging_simple_numbers" id="asset_list_table_paginate">
+                                {% include 'page.html' %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+
+    <script type="javascript" src="/static/js/plugins/datetime/jquery.datetimepicker.js"></script>
+    <script>
+
+        var zTree, rMenu, asset_table, show = 0, datas = '';
+        $(document).ready(function () {
+            // 生成左侧资产树
+            var setting = {
+                view: {
+                    selectedMulti: false,
+                    dblClickExpand: false
+                },
+                check: {
+                    enable: false
+                },
+                data: {
+                    simpleData: {
+                        enable: true,
+                        idKey: "id",
+                        pIdKey: "pId",
+                        rootPId: 0
+                    }
+                },
+            };
+            $.get("{% url 'asset-ztree'%}", function (data) {
+                console.log(data);
+                zTree = $.fn.zTree.init($("#assetTree"), setting, data);
+            }, 'json');
+
+        })
+    </script>
+
+
+    <script>
+        $(function () {
+            // database 表格插件
+            asset_table = $('#asset_list_table').DataTable({aLengthMenu: [20]});
+        })
+    </script>
+    <script>
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "progressBar": false,
+            "preventDuplicates": false,
+            "positionClass": "toast-top-center",
+            "onclick": null,
+            "showDuration": "1000",
+            "hideDuration": "1000",
+            "timeOut": "4000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
+
+        // 隐藏与显示左侧资产树
+        function toggle() {
+            if (show === 0) {
+                $("#split-left").hide(400, function () {
+                    $("#split-right").attr("class", "col-lg-12");
+                    $("#toggle-icon").attr("class", "fa fa-angle-right fa-x");
+                    show = 1;
+                });
+            } else {
+                $("#split-right").attr("class", "col-lg-10");
+                $("#toggle-icon").attr("class", "fa fa-angle-left fa-x");
+                $("#split-left").show(400);
+                show = 0;
+            }
+        }
+
+        function hardware_update(id = null) {
+            layer.confirm("确定要收集配置信息吗？", {icon: 3, closeBtn: 2}, function () {
+                var loadT = layer.msg('正在收集,请稍候...', {icon: 16, time: 0, shade: [0.3, '#000']});
+                if (id) {
+                    $.get(
+                        "/api/v1/assets/hardware/" + id + "/",
+                        {},
+                        function (res) {
+                            if (res.code === 200) {
+                                layer.alert(
+                                    "收集信息成功",
+                                    {icon: 1},
+                                    function () {
+                                        layer.closeAll();
+                                        window.location.reload()
+                                    }
+                                );
+                            } else {
+                                layer.closeAll();
+                                layer.alert("收集信息失败:" + res.msg + "\n" + res.error, {
+                                    icon: 2,
+                                    closeBtn: 0
+                                }, function () {
+                                    window.location.reload()
+                                });
+                            }
+                        }
+                    )
+                }
+            });
+        }
+
+        function test_ping(id = null, ip = null) {
+            let url = '/api/v1/assets/test-ping/' + id + '/?v=';
+            let p = layer.confirm("确定要Ping此主机吗？", {icon: 3, closeBtn: 2}, function () {
+                layer.close(p);
+                var cw = layer.open({
+                    <!--在此处加载csrf_token-->
+                    type: 1,
+                    area: "600px",
+                    title: "联通性检查",
+                    closeBtn: 2,
+                    shift: 5,
+                    shade: false,
+                    shadeClose: false,
+                    content: '<div class="modal-content">' +
+                        '<div class="modal-body">' +
+                        '<div id="idc_info" class="main form-horizontal">' +
+                        '<fieldset>' +
+                        '<div class="form-group">' +
+                        '<label for="idc_name" class="col-sm-2 control-label">Ping检查</label>' +
+                        '<div class="col-sm-6">' +
+                        '<button class="btn btn-primary btn-sm" id="ping" >Ping</button>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                        '<label for="idc_address" class="col-sm-2 control-label">端口检查</label>' +
+                        '<div class="col-sm-6">' +
+                        '<button class="btn btn-primary btn-sm" id="port_check">Port Check</button>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                        '<label for="idc_telephone" class="col-sm-2 control-label">登录检查</label>' +
+                        '<div class="col-sm-6">' +
+                        '<button class="btn btn-primary btn-sm" id="account_check">Account Check</button>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="space-24"></div>' +
+                        '</fieldset>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="modal-footer">' +
+                        '<button class="btn btn-default" onclick="javascript:window.location.reload()" >关闭</button>' +
+                        '<a id="auto-test" class="btn btn-primary" >自动检查</a>' +
+                        '</div></div>'
+                });
+                $("#auto-test").click(function () {
+                    ping(url + '1');
+                    sleep(500);
+                    port_check(url + '2');
+                    sleep(500);
+                    account_check(url + '3');
+                });
+
+                function ping(url) {
+                    $.get(
+                        url, {}, function (res) {
+                            if (res.code === 200) {
+                                console.log(toastr);
+                                toastr["success"]("可以直接ping通", "成功")
+                            } else {
+                                toastr["error"]("服务器Ping 不通", "失败")
+                            }
+                        }
+                    )
+                }
+
+                function sleep(n) {
+                    var start = new Date().getTime();
+                    //  console.log('休眠前：' + start);
+                    while (true) {
+                        if (new Date().getTime() - start > n) {
+                            break;
+                        }
+                    }
+                    // console.log('休眠后：' + new Date().getTime());
+                }
+
+                //点击
+                $("#ping").click(function () {
+                    ping(url + '1')
+                });
+                $("#port_check").click(function () {
+                    port_check(url + '1')
+                });
+                $("#account_check").click(function () {
+                    account_check(url + '1')
+                })
+            });
+
+        }
+    </script>
+    <script type="text/javascript">
+        function del(id) {
+            layer.confirm("真的要删除吗？", {icon: 3, closeBtn: 2}, function () {
+                var loadT = layer.msg('正在删除,请稍候...', {icon: 16, time: 0, shade: [0.3, '#000']});
+                $.ajax({
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    url: "/api/v1/assets/asset/" + id + "/",
+                    type: 'DELETE',
+                    success: function (obj) {
+                        if (obj.code === 200) {
+                            layer.alert(
+                                "删除成功",
+                                {icon: 1},
+                                function () {
+                                    layer.closeAll();
+                                    window.location.reload()
+                                }
+                            );
+                        } else {
+                            layer.alert("删除过程中出现错误:" + obj.msg, {icon: 2, closeBtn: 0});
+                        }
+                    },
+                    error: function (data) {
+                        layer.alert("删除失败" + data.responseText, {icon: 2, closeBtn: 0}, function () {
+                            layer.closeAll()
+                        });
+                    }
+                });
+            });
+        }
+    </script>
+{% endblock %}

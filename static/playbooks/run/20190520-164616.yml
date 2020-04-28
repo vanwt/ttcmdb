@@ -1,0 +1,10 @@
+---
+- host: default
+  gather_facts: false
+  tasks:
+  - name: test1
+    shell: uptime >> /root/test.txt
+    register: output
+  - name: test
+    shell: date >> /root/test.txt
+    register: output

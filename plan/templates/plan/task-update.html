@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}
+    创建计划
+{% endblock %}
+{% block content %}
+    <div class="row wrapper border-bottom white-bg page-heading">
+        <div class="col-sm-10">
+            <h2></h2>
+            <ol class="breadcrumb">
+                <li>
+                    <a>计划任务</a>
+                </li>
+                <li class="active">
+                    <strong>计划任务更改</strong>
+                </li>
+            </ol>
+        </div>
+        <div class="col-sm-2">
+        </div>
+    </div>
+    <div class="modal-content" style="margin-top: 10px;margin-bottom: 45px;">
+        <div class="modal-header">
+            <h4 class="modal-title" id="CeleryTaskModalLabel">新增task</h4>
+        </div>
+        <div class="modal-body">
+            <form action="" class="main form-horizontal" method="post">
+                <fieldset>
+                    {% csrf_token %}
+                    {% for foo in form %}
+                        <div class="form-group">
+                            <label for="name" class="col-sm-2 control-label">{{ foo.label }}</label>
+                            <div class="col-sm-6">
+                                {{ foo }}
+                                {% if foo.errors %}
+                                <p style="margin-top: 10px;margin-bottom: -10px">{{ foo.errors }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                    <div class="modal-footer">
+                        <a href="{% url 'plan-list' %}" class="btn btn-danger" style="width: 200px;">返回</a>
+
+                        <button type="submit" class="btn btn-primary">提交
+                        </button>
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+{% endblock %}

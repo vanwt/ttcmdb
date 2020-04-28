@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% block title %}
+    用户推送列表
+{% endblock %}
+{% block content %}
+    <!-- 路径 -->
+    <div class="row wrapper border-bottom white-bg page-heading">
+        <div class="col-sm-10">
+            <h2></h2>
+            <ol class="breadcrumb">
+                <li>
+                    <a>
+                        资产管理
+                    </a>
+                </li>
+                <li class="active">
+                    <strong>
+                        用户推送列表
+                    </strong>
+                </li>
+            </ol>
+        </div>
+        <div class="col-sm-2">
+        </div>
+    </div>
+    <div class="wrapper wrapper-content animated fadeInRight ecommerce">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="mail-box-header">
+                    <div class="uc pull-left m-r-5" style="margin:0 10px 10px 0">
+                        <a href="{% url 'assets-create-system-user' %}"
+                           class="btn btn-sm btn-primary btn-create-asset">创建用户 </a>
+                    </div>
+                    <div class="uc pull-left m-r-5" style="margin:0 10px 10px 0">
+                        <a href="{% url 'assets-push-user-log' %}"
+                           class="btn btn-sm btn-primary btn-create-asset">推送记录 </a>
+                    </div>
+                    <div id="asset_list_table_wrapper" class="dataTables_wrapper form-inline dt-bootstrap no-footer">
+                        <table class="footable table toggle-arrow-tiny table-striped table-bordered table-hover default dataTable no-footer footable-loaded breakpoint"
+                               id="asset_list_table" style="width: 100%;" role="grid">
+                            <thead>
+                            <tr role="row">
+                                <th class="text-center sorting_disabled" rowspan="1" colspan="1">用户名</th>
+                                <th class="text-center sorting" tabindex="0" rowspan="1" colspan="1">组</th>
+                                <th class="text-center sorting" tabindex="0" rowspan="1" colspan="1">创建时间</th>
+                                <th class="text-center sorting_disabled" rowspan="1" colspan="1">创建用户</th>
+                                <th class="text-center sorting_disabled" rowspan="1" colspan="1">动作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% csrf_token %}
+                            {% for su in system_users %}
+                                <tr role="row" class="odd">
+                                    <td class="text-center">
+                                        {{ su.username }}
+                                    </td>
+                                    <td class=" text-center">
+                                        {{ su.group }}
+                                    </td>
+                                    <td class=" text-center">
+                                        {{ su.create_time }}
+                                    </td>
+                                    <td class=" text-center">
+                                        {{ su.creator.realname }}
+                                    </td>
+                                    <td class=" text-center">
+                                        <a href="{% url 'assets-push-user-log' %}?set={{ su.id }}"
+                                           class="btn btn-default btn-xs">推送记录</a>
+                                        <a onclick="push_user('{{ su.id }}')" class="btn btn-primary btn-xs">推送</a>
+                                        <a href="{% url 'assets-update-system-user' su.id %}"
+                                           class="btn btn-success btn-xs">修改信息</a>
+                                        <button class="btn btn-danger btn-xs" onclick="del('{{ su.id }}')">删除</button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                        <div class="row m-t">
+                            <div class="col-md-12">
+                                <div class="dataTables_paginate paging_simple_numbers" id="asset_list_table_paginate">
+                                    {% include 'page.html' %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+
+        //当点击推送的时候出现
+        function push_user(id) {
+            var pu = layer.open({
+                <!--在此处加载csrf_token-->
+                type: 1,
+                area: "500px",
+                title: "用户推送",
+                closeBtn: 2,
+                shift: 5,
+                shadeClose: false,
+                content: '<div class="modal-content">' +
+                    '<div class="modal-body">' +
+                    '<div class="main form-horizontal">' +
+                    '<fieldset>' +
+                    '<div class="form-group">' +
+                    '<label class="col-sm-2 control-label">推送主机</label>' +
+                    '<div class="col-sm-6">' +
+                    '<select  id="assets" class="form-control select2 select2-hidden-accessible"  data-live-search="true" data-size="20"' +
+                    'data-width="100%"></select>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="modal-footer">' +
+                    '<button onclick="javascript:layer.closeAll()" class="btn btn-default" >关闭</button>' +
+                    '<a onclick="send_server(\'' + id + '\')" class="btn btn-primary" >提交</a>' +
+                    '</div></fieldset></div></div></div>'
+            });
+            let url = "/api/v1/assets/hosts/";
+            $.get(
+                url, {}, function (data) {
+                    let html = undefined;
+                    let par = $("#assets");
+                    $.each(data, function (i, obj) {
+                        html = $('<option value="' + obj.id + '">' + obj.name + '</option>');
+                        par.append(html)
+                    });
+                    par.selectpicker('refresh');
+                }
+            );
+
+        }
+
+        // 当点击发送的时候发送
+        function send_server(system_user_id) {
+            let asset_id = $("#assets option:selected").val();
+
+            if (system_user_id && asset_id) {
+                // 点击之后不能关闭
+                var loadT = layer.msg('正在推送用户到服务器,请稍候...', {icon: 16, time: 0, shade: [0.3, '#000']});
+                $.ajax({
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    url: "/api/v1/assets/push/user/",
+                    type: 'POST',
+                    data: {'system_user': system_user_id, "asset": asset_id},
+                    success: function (data) {
+                        layer.close(loadT);
+                        if (data.code === 200) {
+                            layer.alert("添加成功", {icon: 1});
+
+                        } else {
+                            layer.alert('执行失败', {closeBtn: 0});
+                            $("#code-ans").text(data.msg);
+                        }
+                    },
+                    error: function (data) {
+                        layer.alert('执行失败' + data.responseText, {closeBtn: 0})
+                    }
+                });
+
+            }
+        }
+    </script>
+    <script>
+        // 删除用户
+        function del(id) {
+            layer.confirm("真的要删除吗？", {icon: 3, closeBtn: 2}, function () {
+                var loadT = layer.msg('正在删除,请稍候...', {icon: 16, time: 0, shade: [0.3, '#000']});
+                $.ajax({
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    url: "/api/v1/assets/system-user/" + id + "/",
+                    type: 'DELETE',
+                    success: function (obj) {
+                        layer.alert(
+                            "删除成功",
+                            {icon: 1},
+                            function () {
+                                layer.closeAll();
+                                window.location.reload()
+                            }
+                        );
+                    },
+                    error: function (data) {
+                        layer.alert("删除失败" + data.responseText, {closeBtn: 0});
+                    }
+                });
+            });
+        }
+    </script>
+{% endblock %}

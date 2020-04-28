@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% block title %}
+    命令执行
+{% endblock %}
+{% block style %}
+    <!--<link href="/static/css/plugins/select2/select2.min.css" rel="stylesheet">-->
+
+
+{% endblock %}
+{% block content %}
+    <div class="row wrapper border-bottom white-bg page-heading">
+        <div class="col-sm-10">
+            <h2></h2>
+            <ol class="breadcrumb">
+                <li>
+                    <a>任务管理</a>
+                </li>
+                <li class="active">
+                    <strong>命令执行</strong>
+                </li>
+            </ol>
+        </div>
+        <div class="col-sm-2">
+        </div>
+    </div>
+    <div class="modal-content" style="margin-top: 10px;margin-bottom: 45px;">
+        <div class="modal-header">
+            <div class="col-md-4">
+                <h4 class="modal-title" id="CeleryTaskModalLabel">命令执行</h4>
+                <form role="form" id="runModule">
+                    {% csrf_token %}
+                    <div style="margin-top: 10px;">
+                        <div class="form-group" id="ans_host">
+                            <label>选择主机</label>
+                            <select class="selectpicker" title="选择一个主机进行配置" data-live-search="true" data-size="5"
+                                    name="host"
+                                    data-width="100%" id="ans_group_hosts" multiple>
+
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="ansibleModule">选择模块</label>
+                            <select class="form-control select2 select2-hidden-accessible" style="width: 100%;"
+                                    name="ansibleModule" id="ansibleModule" tabindex="-1"
+                                    aria-hidden="true">
+                                <option selected="selected" value="shell">shell</option>
+                                <option value="yum">yum</option>
+                                <option value="command">command</option>
+                                <option value="copy">copy</option>
+                                <option value="service">service</option>
+                                <option value="file">file</option>
+                                <option value="cron">cron</option>
+                                <option value="wget">wget</option>
+                                <option value="ping">ping</option>
+                                <option value="synchronize">synchronize</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="ansibleModuleArgs">模块参数</label>
+                            <textarea type="text" class="form-control" id="ansibleModuleArgs" name="ansibleModuleArgs"
+                                      rows="2">uptime
+                    </textarea>
+
+                        </div>
+
+                        <div class="form-group">
+                            <button type="button" class="btn btn-primary" onclick="runmoudle()">执行</button>
+                        </div>
+                        <!-- /.form-group -->
+                    </div>
+                    <!-- /.col -->
+                </form>
+            </div>
+            <div class="col-md-8">
+                <pre style="font-size: 16px;" id="code-ans"></pre>
+                <p id="info" style="font-size: 14px;">提示:</p>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+{% block script %}
+    <!--<script src="/static/js/plugins/select2/select2.full.min.js"></script>-->
+    <script>
+        // 获取主机
+        $(function () {
+            let url = "/api/v1/assets/hosts/";
+            $.get(
+                url, {}, function (data) {
+                    let html = undefined;
+                    let par = $("#ans_group_hosts");
+                    $.each(data, function (i, obj) {
+                        html = $('<option value="' + obj.id + '">' + obj.name + '</option>');
+                        par.append(html)
+                    });
+                    par.selectpicker('refresh');
+                }
+            );
+
+        })
+    </script>
+    <script>
+        function runmoudle() {
+            let csrf = $('[name="csrfmiddlewaretoken"]').val();
+            let ids = $('#ans_group_hosts').val();
+            let module = $('#ansibleModule').val();
+            let args = $('#ansibleModuleArgs').val();
+//            alert(host)
+            if (ids == '') {
+                layer.alert("缺少重要的参数!\n请选择运行主机！", {closeBtn: 0});
+                return NaN
+            }
+            if (module == '') {
+                layer.alert("缺少重要的参数!\n请选择执行模块！", {closeBtn: 0});
+                return NaN
+            }
+            if (args == '') {
+                layer.alert("缺少重要的参数!\n请输入命令！", {closeBtn: 0});
+                return NaN
+            }
+            //发送
+            if (ids && module && args) {
+                $('#code-ans').html("<code style='color: black'>开始执行>></code><br>");
+                // 开启ws连接
+                ws_connect(ids, args, module)
+            } else {
+                layer.alert("请填写正确参数！", {closeBtn: 0});
+            }
+        }
+
+        $("#ansibleModule").click(function () {
+            let model = $("#ansibleModule option:selected").val();
+            if (model === "shell") {
+                $("#ansibleModuleArgs").val("/bin/sh /mnt/test.sh >> /tmp/var.log");
+                $("#info").html("直接输入命令即可" + "作用：用于在各被管理节点运行指定的命令<br>" +
+                    "shell和command的区别：shell模块可以特殊字符，而command是不支持<br>" +
+                    "command不支持变量、重定向、管道符等操作")
+            } else if (model === "command") {
+                $("#ansibleModuleArgs").val("");
+                $("#info").html("直接输入命令，不支持特殊字符：uptime")
+            } else if (model === "yum") {
+                $("#ansibleModuleArgs").val("name=xxx state=installed");
+                $("#info").html("模块参数详解<br>" +
+                    "name:表示要安装软件包的名字，默认最新的程序包，指明要安装的程序包，可以带上版本号<br>" +
+                    "state:表示是安装还卸载<br>" +
+                    "present:默认的，表示为安装<br>" +
+                    "lastest:安装为最新的版本<br>" +
+                    "absent：表示删除")
+            } else if (model === "copy") {
+                $("#ansibleModuleArgs").val("src=/etc/passwd dest=/tmp mode=755 owner=root");
+                $("#info").html("模块参数详解：  <br>" +
+                    "src:指定源文件路径，可以是相对路径，也可以是绝对路径，可以是目录(并非是必须的，可以使用content，直接生成文件内容)<br>" +
+                    "dest=:指定目标文件路径，只能是绝对路径，如果src是目录，此项必须是目录<br>" +
+                    "owner:指定属主<br>" +
+                    "group:指定属组<br>" +
+                    "mode:指定权限,可以以数字指定比如0644<br>" +
+                    "content:代替src，直接往dest文件中写内容，可以引用变量，也可以直接使用inventory中的主机变量<br>" +
+                    "backup:在覆盖之前将原文件备份，备份文件包含时间信息。有两个选项：yes|no<br>" +
+                    "force:<br>" +
+                    "yes:默认项，如果目标主机包含该文件，但内容不同，则强制覆盖<br>" +
+                    "no:则只有当目标主机的目标位置不存在该文件时，才复制<br>" +
+                    "directory_mode：递归的设定目录的权限，默认为系统默认权限" +
+                    "复制本地文件到远程主机并对原文件进行备份: " +
+                    "src=/tmp/abc.txt dest=/tmp/ backup=yes"
+                )
+            } else if (model === "service") {
+                $("#ansibleModuleArgs").val("name=httpd state=started");
+                $("#info").html("模块参数详解<br>" +
+                    "enabled:表示设置服务开机是否启动，取值为true或者false;enabled=yes<br>" +
+                    "name=:表示要控制哪一个服务<br>" +
+                    "state:<br>" +
+                    "started:表示现在就启动此服务<br>" +
+                    "stopped:表示现在关闭此服务<br>" +
+                    "restarted:表示重启此服务<br>" +
+                    "sleep:如果执行了restarted,在stop和start之间沉睡几秒<br>" +
+                    "runlevel:定义在哪些级别可以自启动<br>" +
+                    "arguments:表示向命令行传递的参数<br>" +
+                    "示例: " +
+                    "enabled=on name=httpd state=started")
+            } else if (model === "synchronize") {
+                $("#ansibleModuleArgs").val("src=/tmp/ dest=/tmp/");
+                $("#info").html("compress：开启压缩，默认为开启<br>" +
+                    "archive：是否采用归档模式同步，保证源文件和目标文件属性一致<br>" +
+                    "checksum：是否效验<br>" +
+                    "dirs：以非递归的方式传送目录<br>" +
+                    "links：同步链接文件<br>" +
+                    "recursive：是否递归yes/no<br>" +
+                    "rsync_opts：使用rsync的参数<br>" +
+                    "copy_links：同步的时候是否复制链接<br>" +
+                    "delete：删除源中没有但目标存在的文件，使两边内容一样，以推送方为主<br>" +
+                    "src：源目录及文件<br>" +
+                    "dest：目标文件及目录<br>" +
+                    "dest_port：目标接收的端口<br>" +
+                    "rsync_path：服务的路径，指定rsync在远程服务器上执行" +
+                    "rsync_remote_user：设置远程用户名<br>" +
+                    "–exclude=.log：忽略同步以.log结尾的文件，这个可以自定义忽略什么格式的文件，或者.txt等等都可以，但是由于这个是rsync命令的参数，所以必须和rsync_opts一起使用，比如rsync_opts=--exclude=.txt这种模式<br>" +
+                    "mode：同步的模式，rsync同步的方式push、pull，默认是推送push，从本机推送给远程主机，pull表示从远程主机上拿文件"
+                )
+            } else if (model === "cron") {
+                $("#ansibleModuleArgs").val("minute=0 hour=0 day=* month=* weekday=* name='xxxx test' backup=yes job='xxxx命令'");
+                $("#info").html("模块参数详解<br>" +
+                    "state:<br>" +
+                    "present:创建任务<br>" +
+                    "absent:删除任务<br>" +
+                    "backup:对远程主机上的原任务计划内容修改之前做备份<br>" +
+                    "job:要执行的任务<br>" +
+                    "name:该任务的描述(必须项)<br>" +
+                    "user:以哪个用户的身份运行<br>" +
+                    "minute：分钟（0-59，*，*/2，……），不写默认为*<br>" +
+                    "hour：小时（0-23，*，*/2，……），不写默认为*<br>" +
+                    "day：日（1-31，*，*/2,……），不写默认为*<br>" +
+                    "month：月（1-12，*，*/2，……），不写默认为*<br>" +
+                    "weekday：周（0-7，*，……），不写默认为*<br>" +
+                    "示例: 每隔10分钟执行" +
+                    "name=\"sync time from ntpserver\" minute=*/10 job=\"....<br>" + "也可以写作 */10 * * * * ..."
+                )
+            } else if (model === "wget") {
+                $("#ansibleModuleArgs").val("");
+                $("#info").html("直接跟命令就可以")
+            } else if (model === "file") {
+                $("#ansibleModuleArgs").val("");
+                $("#info").html("模块参数详解：  <br>" +
+                    "owner:修改属主<br>" +
+                    "group:修改属组<br>" +
+                    "mode:修改权限<br>" +
+                    "path=:要修改文件的路径<br>" +
+                    "recurse：递归的设置文件的属性，只对目录有效<br>" +
+                    "yes:表示使用递归设置<br>" +
+                    "state:<br>" +
+                    " touch:创建一个新的空文件<br>" +
+                    " directory:创建一个新的目录，当目录存在时不会进行修改<br>" +
+                    " link:创建软连接，结果src一起使用此选项才生效<br>" +
+                    " hard:创建硬连接<br>" +
+                    " absent:删除文件，目录，软连接<br>" +
+                    "src:当state=link时，要被连接文件的源路径<br>" +
+                    "示例:创建一个文件 path=/tmp/zhangsan.txt state=touch<br>" +
+                    "设置文件的属主 属组 path=/tmp/liuwei owner=root group=root recurse=yes"
+                )
+            }
+        });
+
+        function ws_connect(ids, args, module) {
+            // 作为参数发送到服务器 并建立连接
+            var module_c = new WebSocket(
+                'ws://' + window.location.host + '/ws/run-module/?' + 'key=fau87is4sd4874g5s4khjkyr7g8hj8v5jg3hu'
+            );
+            //发送消息
+            module_c.onopen = function () {
+                let message = {};
+                message['ids'] = ids;
+                message["args"] = args;
+                message["module"] = module;
+                let send_data = JSON.stringify(message);
+                module_c.send(send_data)
+            };
+            // 接受消息
+            module_c.onmessage = function (recv) {
+                $("#code-ans").append(recv.data)
+            };
+            module_c.onclose = function (recv) {
+                let html = "<br><code style='color: black'>执行完毕,断开连接....</code>";
+                $('#code-ans').append(html);
+                console.log("执行完毕");
+                module_c.close()
+            };
+        }
+    </script>
+
+{% endblock %}

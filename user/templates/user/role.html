@@ -1,0 +1,503 @@
+{% extends 'base.html' %}
+{% block title %}
+    权限管理
+{% endblock %}
+{% block content %}
+    <!-- 路径 -->
+    <div class="row wrapper border-bottom white-bg page-heading">
+        <div class="col-sm-10">
+            <h2></h2>
+            <ol class="breadcrumb">
+                <li>
+                    <a>
+                        权限管理
+                    </a>
+                </li>
+                <li class="active">
+                    <strong>
+                        角色管理
+                    </strong>
+                </li>
+            </ol>
+        </div>
+        <div class="col-sm-2">
+        </div>
+    </div>
+    <div class="wrapper wrapper-content animated fadeInRight ecommerce">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="col-lg-5">
+                    <div class="mail-box-header">
+                        <div class="uc pull-left m-r-5" style="margin:0 10px 10px 0">
+                            <a onclick="create_role()" class="btn btn-sm btn-primary btn-create-asset">添加角色</a>
+                        </div>
+                        <div class="dataTables_wrapper form-inline dt-bootstrap no-footer">
+                            <table class="table toggle-arrow-tiny table-striped table-bordered"
+                                   id="myTable" style="width: 100%;" role="grid">
+                                <thead>
+                                <tr role="row">
+                                    <th class="text-center sorting">角色名</th>
+                                    <th class="text-center sorting">状态</th>
+                                    <th class="text-center sorting_disabled">动作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for role in role_list %}
+                                    <tr role="row" class="odd">
+                                        <td class=" text-center">
+                                            <b>{{ role.title }}</b>
+                                        </td>
+                                        <td class=" text-center" onclick="OnOffStatus('{{ role.id }}')">
+                                            {% if role.status %}
+                                                <button class="btn btn-primary btn-xs">启用</button>
+                                            {% else %}
+                                                <button class="btn btn-danger btn-xs">未启用</button>
+                                            {% endif %}
+                                        </td>
+                                        <td class=" text-center">
+                                            <a onclick="change_role('{{ role.id }}')"
+                                               class="btn btn-xs btn-warning m-l-xs ">修改</a>
+                                            <a onclick="change_user('{{ role.id }}')"
+                                               class="btn btn-xs btn-primary m-l-xs ">用户</a>
+                                            <a onclick="change_permission('{{ role.id }}')"
+                                               class="btn btn-xs btn-info m-l-xs ">权限</a>
+                                            <a onclick="change_menu('{{ role.id }}')"
+                                               class="btn btn-xs btn-default m-l-xs ">菜单</a>
+                                            <button onclick="del('{{ role.id }}')"
+                                                    class="btn btn-xs btn-danger m-l-xs">
+                                                删除
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr role="row" class="odd">
+                                        <td colspan="7" class="text-center">没有数据</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            <div class="row m-t">
+                                <div class="col-md-12">
+                                    <div class="dataTables_paginate paging_simple_numbers"
+                                         id="asset_list_table_paginate">
+                                        {% include 'page.html' %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <div class="mail-box-header" id="ctd">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script src="/static/js/plugins/dualListbox/jquery.bootstrap-duallistbox.js"></script>
+    <script type="text/javascript">
+        csrf = '{{ csrf_token }}';
+        var html = '<div class="modal-content">' +
+            '<div class="modal-body">' +
+            '<div id="idc_info" class="main form-horizontal">' +
+            '<fieldset>' +
+            '<div class="form-group">' +
+            '<label for="idc_name" class="col-sm-2 control-label">角色名称</label>' +
+            '<div class="col-sm-6">' +
+            '<input type="text" class="form-control" id="role_name" >' +
+            '</div>' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label for="idc_type" class="col-sm-2 control-label">角色状态</label>' +
+            '<div class="col-sm-6">' +
+            '<select name="type" id="status" class="form-control select2 select2-hidden-accessible">' +
+            '<option value="1">启用</option>' +
+            '<option value="0">不启用</option>' +
+            '</select>' +
+            '</div>' +
+            '</div>' +
+            '<div class="space-24"></div>' +
+            '</fieldset>' +
+            '</div>' +
+            '</div>' +
+            '<div class="modal-footer">' +
+            '<button  class="btn btn-default" onclick="javascript:layer.closeAll()"  >关闭</button>' +
+            '<a id="submit" class="btn btn-primary" >提交</a>' +
+            '</div></div>';
+
+        function create_role() {
+            var url_permission = layer.open({
+                <!--在此处加载csrf_token-->
+                type: 1,
+                area: "500px",
+                title: "添加规则",
+                closeBtn: 2,
+                shift: 5,
+                shadeClose: false,
+                content: html
+            });
+            $("#submit").click(function () {
+                let name = $('#role_name').val();
+                let status = $("#status option:selected").val();
+                if (name && status) {
+                    $.ajax({
+                        headers: {"X-CSRFToken": csrf},
+                        type: 'post',
+                        async: true,
+                        url: '/api/v1/user/role/',
+                        data: {
+                            "title": name,
+                            "status": status,
+                        },
+                        success: function (data) {
+                            console.log(data);
+                            if (data.title) {
+                                layer.alert("添加成功", {icon: 1},
+                                    function () {
+                                        layer.closeAll();
+                                        window.location.reload()
+                                    }
+                                );
+                            } else {
+                                layer.alert('失败' + data.detail, {closeBtn: 0})
+                            }
+                        },
+                        error: function (data) {
+                            layer.alert('失败' + data.responseText, {closeBtn: 0})
+                        }
+                    })
+                } else {
+                    layer.alert('请填写必要数据', {closeBtn: 0})
+                }
+            });
+        }
+
+        function change_role(id) {
+
+            var role_div = layer.open({
+                <!--在此处加载csrf_token-->
+                type: 1,
+                area: "500px",
+                title: "编辑",
+                closeBtn: 2,
+                shift: 5,
+                shadeClose: false,
+                content: html
+            });
+            $.ajax({
+                url: "/api/v1/user/role/" + id + "/",
+                type: "get",
+                success: function (data) {
+                    $('#role_name').val(data.title);
+                    if (data.status === true) {
+                        $("#status option")[0].selected = true
+                    } else {
+                        $("#status option")[1].selected = true
+                    }
+                }, error: function (data) {
+                    layer.alert('失败' + data.responseText, {closeBtn: 0}, function () {
+                        layer.closeAll()
+                    })
+                }
+            });
+            $("#submit").click(function () {
+                let name = $('#role_name').val();
+                let status = $("#status option:selected").val();
+                if (name && status) {
+                    $.ajax({
+                        headers: {"X-CSRFToken": csrf},
+                        type: 'put',
+                        async: true,
+                        url: '/api/v1/user/role/' + id + "/",
+                        data: {
+                            "title": name,
+                            "status": status
+                        },
+                        success: function (data) {
+                            if (data.title) {
+                                layer.alert("编辑成功", {icon: 1},
+                                    function () {
+                                        layer.closeAll();
+                                        window.location.reload()
+                                    }
+                                );
+                            } else {
+                                layer.alert('失败' + data.detail, {closeBtn: 0})
+                            }
+                        },
+                        error: function (data) {
+                            layer.alert('失败' + data.responseText, {closeBtn: 0})
+                        }
+                    })
+                } else {
+                    layer.alert('没有改变什么', {closeBtn: 0})
+                }
+            });
+        }
+
+        function del(id) {
+            layer.confirm("确定要删除吗？",
+                {icon: 3, closeBtn: 2},
+                function () {
+                    $.ajax({
+                        headers: {"X-CSRFToken": csrf},
+                        url: "/api/v1/user/role/" + id + "/",
+                        type: 'DELETE',
+                        success: function () {
+                            layer.closeAll();
+                            window.location.reload()
+                        },
+                        error: function (data) {
+                            layer.alert("删除出现错误" + data.responseText, {closeBtn: 0});
+                        }
+                    });
+                });
+        }
+
+        function OnOffStatus(id) {
+            layer.confirm("确定要这样操作吗？",
+                {icon: 3, closeBtn: 2},
+                function () {
+                    $.ajax({
+                        headers: {"X-CSRFToken": csrf},
+                        url: "/api/v1/user/role/status/" + id + "/",
+                        type: 'get',
+                        success: function () {
+                            layer.closeAll();
+                            window.location.reload()
+                        },
+                        error: function (data) {
+                            layer.alert("出现错误" + data.responseText, {closeBtn: 0});
+                        }
+                    });
+                });
+        }
+
+        function change_user(id) {
+            $("#ctd").empty();
+            html = '<select name="test" multiple class="dual_select" id="users"></select><hr>' +
+                '<button class="btn btn-info" id="user-submit" onclick="UserSubmit(\'' + id + '\')">提交</button>';
+            $("#ctd").html(html);
+
+            // 查询 用户
+            $.ajax({
+                headers: {"X-CSRFToken": csrf},
+                url: "/api/v1/user/role-users/",
+                type: 'get',
+                data: {"id": id},
+                async: false,
+                success: function (data) {
+                    if (data.errcode === 0) {
+                        let html = '';
+
+                        $.each(data.msg, function (i, obj) {
+                            if (obj.selected) {
+                                html += '<option value="' + obj.id + '" selected>' + obj.realname + '</option>'
+                            } else {
+                                html += '<option value="' + obj.id + '">' + obj.realname + '</option>'
+                            }
+                        });
+                        $("#users").append(html);
+                    } else {
+                        layer.alert(data.msg, {icon: 2, closeBtn: 0});
+                    }
+                },
+                error: function (data) {
+                    layer.alert("获取用户错误" + data.responseText, {icon: 2, closeBtn: 0});
+                }
+            });
+            // 选择已经选择的用户
+
+
+            $('.dual_select').bootstrapDualListbox({
+                selectorMinimalHeight: 300
+            });
+        }
+
+        function change_permission(id) {
+            $("#ctd").empty();
+            html = '<select name="test" multiple class="dual_select" id="permissions"></select><hr>' +
+                '<button class="btn btn-info" id="permission-submit" onclick="PermissionSubmit(\'' + id + '\')">提交</button>';
+            $("#ctd").html(html);
+
+            // 查询 权限
+            $.ajax({
+                headers: {"X-CSRFToken": csrf},
+                url: "/api/v1/user/role-permissions/",
+                type: 'get',
+                data: {"id": id},
+                async: false,
+                success: function (data) {
+                    if (data.errcode === 0) {
+                        let html = '';
+
+                        $.each(data.msg, function (i, obj) {
+                            if (obj.selected) {
+                                html += '<option value="' + obj.id + '" selected>' + obj.title + '</option>'
+                            } else {
+                                html += '<option value="' + obj.id + '">' + obj.title + '</option>'
+                            }
+                        });
+                        $("#permissions").append(html);
+                    } else {
+                        layer.alert(data.msg, {icon: 2, closeBtn: 0});
+                    }
+                },
+                error: function (data) {
+                    layer.alert("获取权限错误" + data.responseText, {icon: 2, closeBtn: 0});
+                }
+            });
+            // 选择已经选择的权限
+            $('.dual_select').bootstrapDualListbox({
+                selectorMinimalHeight: 300
+            });
+        }
+
+        function change_menu(id) {
+            $("#ctd").empty();
+            html = '<select name="test" multiple class="dual_select" id="menus"></select><hr>' +
+                '<button class="btn btn-info" onclick="MenuSubmit(\'' + id + '\')">提交</button>';
+            $("#ctd").html(html);
+
+            // 查询 权限
+            $.ajax({
+                headers: {"X-CSRFToken": csrf},
+                url: "/api/v1/user/role-menus/",
+                type: 'get',
+                data: {"id": id},
+                async: false,
+                success: function (data) {
+                    if (data.errcode === 0) {
+                        let html = '';
+
+                        $.each(data.msg, function (i, obj) {
+                            if (obj.selected) {
+                                html += '<option value="' + obj.id + '" selected>' + obj.title + '</option>'
+                            } else {
+                                html += '<option value="' + obj.id + '">' + obj.title + '</option>'
+                            }
+                        });
+                        $("#menus").append(html);
+                    } else {
+                        layer.alert(data.msg, {icon: 2, closeBtn: 0});
+                    }
+                },
+                error: function (data) {
+                    layer.alert("获取菜单错误" + data.responseText, {icon: 2, closeBtn: 0});
+                }
+            });
+            // 选择已经选择的权限
+            $('.dual_select').bootstrapDualListbox({
+                selectorMinimalHeight: 300
+            });
+        }
+
+        function UserSubmit(id) {
+            layer.msg('正在提交,请稍候...', {icon: 16, time: 0, shade: [0.3, '#000']});
+            let users = [];
+            $("#users option:selected").each(function () {
+                users.push($(this).val());//向数组中添加元素
+            });
+            // 发送请求修改
+            $.ajax({
+                headers: {"X-CSRFToken": csrf},
+                type: 'post',
+                async: false,
+                url: '/api/v1/user/role-users/',
+                data: {
+                    "id": id,
+                    "users": users
+                },
+                success: function (data) {
+                    if (data.errcode === 0) {
+                        layer.alert("编辑成功", {icon: 1},
+                            function () {
+                                layer.closeAll();
+                                window.location.reload()
+                            }
+                        );
+                    } else {
+                        layer.alert('失败' + data.msg, {icon: 2, closeBtn: 0})
+                    }
+                },
+                error: function (data) {
+                    layer.alert('失败' + data.responseText, {icon: 2, closeBtn: 0})
+                }
+            })
+
+        }
+
+        function PermissionSubmit(id) {
+            layer.msg('正在提交,请稍候...', {icon: 16, time: 0, shade: [0.3, '#000']});
+            let permissions = [];
+            $("#permissions option:selected").each(function () {
+                permissions.push($(this).val());//向数组中添加元素
+            });
+            // 发送请求修改
+            $.ajax({
+                headers: {"X-CSRFToken": csrf},
+                type: 'post',
+                async: false,
+                url: '/api/v1/user/role-permissions/',
+                data: {
+                    "id": id,
+                    "permissions": permissions
+                },
+                success: function (data) {
+                    if (data.errcode === 0) {
+                        layer.alert("编辑成功", {icon: 1},
+                            function () {
+                                layer.closeAll();
+                                window.location.reload()
+                            }
+                        );
+                    } else {
+                        layer.alert('失败' + data.msg, {icon: 2, closeBtn: 0})
+                    }
+                },
+                error: function (data) {
+                    layer.alert('失败' + data.responseText, {icon: 2, closeBtn: 0})
+                }
+            })
+
+        }
+
+        function MenuSubmit(id) {
+            layer.msg('正在提交,请稍候...', {icon: 16, time: 0, shade: [0.3, '#000']});
+            let menus = [];
+            $("#menus option:selected").each(function () {
+                menus.push($(this).val());//向数组中添加元素
+            });
+            // 发送请求修改
+            $.ajax({
+                headers: {"X-CSRFToken": csrf},
+                type: 'post',
+                async: false,
+                url: '/api/v1/user/role-menus/',
+                data: {
+                    "id": id,
+                    "menus": menus
+                },
+                success: function (data) {
+                    if (data.errcode === 0) {
+                        layer.alert("编辑成功", {icon: 1},
+                            function () {
+                                layer.closeAll();
+                                window.location.reload()
+                            }
+                        );
+                    } else {
+                        layer.alert('失败' + data.msg, {icon: 2, closeBtn: 0})
+                    }
+                },
+                error: function (data) {
+                    layer.alert('失败' + data.responseText, {icon: 2, closeBtn: 0})
+                }
+            })
+
+        }
+    </script>
+{% endblock %}

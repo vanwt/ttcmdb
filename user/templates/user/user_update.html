@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% block title %}
+修改用户
+{% endblock %}
+{% block content %}
+<!-- 路径 -->
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-10">
+        <h2></h2>
+        <ol class="breadcrumb">
+            <li>
+                <a>用户管理</a>
+            </li>
+            <li class="active">
+                <strong>修改用户</strong>
+            </li>
+        </ol>
+    </div>
+    <div class="col-sm-2">
+    </div>
+</div>
+
+<div class="row wrapper border-bottom white-bg page-heading" style="margin-top: 10px;">
+    <div class="alert alert-info help-message">
+        必须填写真实姓名，否则将不能查看其他页面
+    </div>
+    <div class="col-sm-12">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>修改用户 <a style="margin-left: 50px;" href="javascript:history.back()"
+                            class="btn-danger btn btn-sm">返回</a></h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+
+                    <a class="close-link">
+                        <i class="fa fa-times"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                <form method="post" class="form-horizontal" action="" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <h3>基本信息</h3>
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">{{ form.username.label }}</label>
+                        <div class="col-md-10">
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                            <div class="help-block" style="color: red">{{ form.username.errors }}</div>
+                            {% elif form.username.help_text %}
+                            <div class="help-block">{{ form.username.help_text }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">{{ form.realname.label }}</label>
+                        <div class="col-md-10">
+                            {{ form.realname }}
+                            {% if form.realname.errors %}
+                            <div class="help-block" style="color: red">{{ form.realname.errors }}</div>
+                            {% elif form.realname.help_text %}
+                            <div class="help-block">{{ form.realname.help_text }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">{{ form.email.label }}</label>
+                        <div class="col-md-10">
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                            <div class="help-block" style="color: red">{{ form.email.errors }}</div>
+                            {% elif form.email.help_text %}
+                            <div class="help-block">{{ form.email.help_text }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">{{ form.phone.label }}</label>
+                        <div class="col-md-10">
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                            <div class="help-block" style="color: red">{{ form.phone.errors }}</div>
+                            {% elif form.phone.help_text %}
+                            <div class="help-block">{{ form.phone.help_text }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">{{ form.info.label }}</label>
+                        <div class="col-md-10">
+                            {{ form.info }}
+                            {% if form.info.errors %}
+                            <div class="help-block" style="color: red">{{ form.info.errors }}</div>
+                            {% elif form.info.help_text %}
+                            <div class="help-block">{{ form.info.help_text }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">{{ form.face.label }}</label>
+                        <div class="col-md-10">
+                            {{form.face}}
+                        </div>
+                    </div>
+                    {% if request.user.is_superuser %}
+                    <h3>其他信息</h3>
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">{{ form.is_active.label }}</label>
+                        <div class="col-md-10">
+                            {{ form.is_active }}
+                            {% if form.is_active.errors %}
+                            <div class="help-block" style="color: red">{{ form.is_active.errors }}</div>
+                            {% elif form.is_active.help_text %}
+                            <div class="help-block">{{ form.is_active.help_text }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">{{ form.is_superuser.label }}</label>
+                        <div class="col-md-10">
+                            {{ form.is_superuser }}
+                            {% if form.is_superuser.errors %}
+                            <div class="help-block" style="color: red">{{ form.is_superuser.errors }}</div>
+                            {% elif form.is_superuser.help_text %}
+                            <div class="help-block">{{ form.is_superuser.help_text }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">{{ form.is_staff.label }}</label>
+                        <div class="col-md-10">
+                            {{ form.is_staff }}
+                            {% if form.is_staff.errors %}
+                            <div class="help-block" style="color: red">{{ form.is_staff.errors }}</div>
+                            {% elif form.is_staff.help_text %}
+                            <div class="help-block">{{ form.is_staff.help_text }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="hr-line-dashed"></div>
+                    {% for foo in form.errors.items %}
+                    {{ foo }}
+                    {% endfor %}
+                    <div class="form-group">
+                        <div class="col-sm-4 col-sm-offset-2">
+                            <button class="btn btn-white" type="reset">重置</button>
+                            <button id="submit_button" class="btn btn-primary" type="submit">提交</button>
+                        </div>
+                    </div>
+                </form>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block script %}
+<script src="/static/js/plugins/dualListbox/jquery.bootstrap-duallistbox.js"></script>
+<script>
+    $('.dual_select').bootstrapDualListbox({
+        selectorMinimalHeight: 160
+    });
+</script>
+{% endblock %}
