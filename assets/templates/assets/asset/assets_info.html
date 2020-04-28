@@ -1,0 +1,376 @@
+{% extends 'base.html' %}
+{% block title %}
+详细信息
+{% endblock %}
+{% block content %}
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-10">
+        <h2></h2>
+        <ol class="breadcrumb">
+            <li>
+                <a>资产管理</a>
+            </li>
+            <li>
+                <a href="{% url 'assets-list' %}">主机列表</a>
+            </li>
+            <li class="active">
+                <strong>详细信息</strong>
+            </li>
+        </ol>
+    </div>
+    <div class="col-sm-2">
+    </div>
+</div>
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="panel-options">
+                    <ul class="nav nav-tabs">
+                        <li class="active" id="overview">
+                            <a class="text-center">主机信息 </a>
+                        </li>
+                        <!-- 如果没有权限就不显示 -->
+                        {% if request.user.is_superuser%}
+                        <li id="detailed">
+                            <a class="text-center"><i class="fa fa-laptop"></i>
+                                详细信息
+                            </a>
+                        </li>
+                        {% endif %}
+                        <li class="pull-right">
+                            <a class="btn btn-outline btn-default" href="{% url 'assets-update' asset.id %}">
+                                <i class="fa fa-edit"></i>更新
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="tab-content">
+                    <div class="col-sm-7" style="padding-left: 0">
+                        <div class="ibox float-e-margins">
+                            <div class="ibox-title">
+                                <span class="label"><b>{{ asset.ip }}</b></span>
+                            </div>
+                            <div class="ibox-content" id="asset_view">
+                                <table class="table">
+                                    <tbody>
+                                    <tr class="no-borders-tr">
+                                        <td width="20%">资产类型:</td>
+                                        <td><b>
+                                            {{asset.get_asset_type_display}}
+                                        </b></td>
+                                    </tr>
+                                    <tr>
+                                        <td>IP:</td>
+                                        <td><b>{{ asset.ip }}</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td>系统类型</td>
+                                        <td><b>{{asset.get_system_display}}</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td>属于</td>
+                                        <td><b>{{asset.get_own_display}}</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td>设备状态</td>
+                                        <td>
+                                            {% if asset.status == 0 %}
+                                            <div class="btn btn-xs btn-warning">下线</div>
+                                            {% elif asset.status == 1 %}
+                                            <div class="btn btn-xs btn-primary">运行中</div>
+                                            {% elif asset.status == 2 %}
+                                            <div class="btn btn-xs btn-danger">故障中</div>
+                                            {% elif asset.status == 3 %}
+                                            <div class="btn btn-xs btn-success">未使用</div>
+                                            {% else %}
+                                            <div class="btn btn-xs btn-info">未知</div>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>可连接</td>
+                                        <td>
+                                            {% if asset.is_pass == 0 %}
+                                            <button class="btn btn-danger btn-xs"><i class="fa fa-times"></i></button>
+                                            {% elif asset.is_pass == 1 %}
+                                            <button class="btn btn-primary btn-xs"><i class="fa fa-check"></i></button>
+                                            {% else %}
+                                            <button class="btn btn-warning btn-xs"><i class="fa fa-question"></i>
+                                            </button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>所属项目</td>
+                                        <td><b>{{asset.project.project_name | default:"暂无"}}</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td>机房</td>
+                                        <td><b>{{asset.idc.name | default:"暂无"}}</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td>创建日期:</td>
+                                        <td><b>{{ asset.create_time }}</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td>修改日期:</td>
+                                        <td><b>{{ asset.update_time }}</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td>备注:</td>
+                                        <td><b>{{ asset.remark|default:"无" }}</b></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% if request.user.is_superuser%}
+                            <div class="ibox-content" style="display: none" id="asset_detail">
+                                <table class="table">
+                                    <tbody>
+                                    <tr>
+                                        <td>SSH用户:</td>
+                                        <td><b>{{ asset.sshuser }}</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td>SSH密码:</td>
+                                        <td><b>{{ asset.sshpwd }}</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td>SSH端口:</td>
+                                        <td><b>{{ asset.sshport }}</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td>MYSQL用户:</td>
+                                        <td><b>{{ asset.mysql_user }}</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td>MYSQL密码:</td>
+                                        <td><b>{{ asset.mysql_pwd }}</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td>FTP端口:</td>
+                                        <td><b>{{ asset.ftp_port }}</b></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                                <div style="margin-top: 10px;" class="panel panel-success">
+                                    <div class="panel-heading">
+                                        <i class="fa fa-info-circle"></i> 系统用户
+                                    </div>
+                                    <div class="panel-body">
+                                        <table class="footable table toggle-arrow-tiny table-striped">
+                                            <thead>
+                                            <tr>
+                                                <th class="text-center sorting">用户名</th>
+                                                <th class="text-center sorting">用户组</th>
+                                                <th class="text-center sorting">创建时间</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for user in asset.system_users.all %}
+                                            <tr role="row" class="odd">
+                                                <td class=" text-center">
+                                                    {{ user.username }}
+                                                </td>
+                                                <td class=" text-center">
+                                                    {{ user.group }}
+                                                </td>
+                                                <td class=" text-center">
+                                                    {{ user.create_time }}
+                                                </td>
+                                            </tr>
+                                            {% empty %}
+                                            <tr role="row" class="odd">
+                                                <td colspan="11" class="text-center">没有数据</td>
+                                            </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-sm-5" style="padding-left: 0;padding-right: 0">
+                        <div class="panel panel-primary">
+                            <div class="panel-heading">
+                                <i class="fa fa-info-circle"></i> 快速修改
+                            </div>
+                            <div class="panel-body">
+                                <table class="table">
+                                    <tbody>
+                                    {% if request.user.is_superuser%}
+                                    <tr class="no-borders-tr">
+                                        <td width="50%">激活中:</td>
+                                        <td>
+                                            <span class="pull-right">
+                                                <a href="{% url 'assets-change-active' asset.id %}"
+                                                   class="btn btn-primary btn-xs" style="width: 54px">
+                                                    {% if asset.is_active %}
+                                                        已激活
+                                                    {% else %}
+                                                        未激活
+                                                    {% endif %}
+                                                </a>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>更新硬件信息:</td>
+                                        <td>
+                                            <span class="pull-right">
+                                                <button type="button" class="btn btn-primary btn-xs"
+                                                        id="btn_refresh_asset" style="width: 54px"
+                                                        onclick="hardware_update('{{asset.id}}')">收集</button>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    <tr>
+                                        <td>测试可连接性:</td>
+                                        <td>
+                                            <span class="pull-right">
+                                                <button type="button" class="btn btn-primary btn-xs"
+                                                        onclick="test_ping('{{ asset.id }}','{{asset.ip}}')"
+                                                        style="width: 54px">Ping</button>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="panel panel-warning">
+                            <div class="panel-heading">
+                                <i class="fa fa-info-circle"></i> 标签管理
+                            </div>
+                            <div class="panel-body">
+                                <ul class="tag-list" style="padding: 0">
+                                    {%for tag in asset.tags.all %}
+                                    <li>{{tag.name}}</li>
+                                    <br>
+                                    {%endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="panel panel-warning">
+                            <div class="panel-heading">
+                                <i class="fa fa-info-circle"></i> 硬件信息
+                            </div>
+                            <div class="panel-body">
+                                <ul style="padding: 0;list-style: none">
+                                    <li>
+                                        <span>CPU型号:</span>
+                                        <b>{{asset.cpu|default:"暂无，请点击信息收集"}}</b>
+                                    </li>
+                                    <li>
+                                        <span>CPU数量:</span>
+                                        <b>{{asset.logical_cpu|default:"暂无，请点击信息收集"}}</b>
+                                    </li>
+                                    <li>
+                                        <span>内存:</span>
+                                        <b>{{asset.ram|default:"暂无，请点击信息收集"}} G</b>
+                                    </li>
+                                    <li>
+                                        <span>硬盘:</span>
+                                        <b>{{asset.disk|default:"暂无，请点击信息收集"}} G</b>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    $(function () {
+        $('#detailed').click(function () {
+            $(this).addClass("active");
+            $('#overview').removeClass("active");
+
+            $('#asset_view').css('display', 'none');
+            $('#asset_detail').css('display', 'block')
+        });
+        $('#overview').click(function () {
+            $(this).addClass("active");
+            $('#detailed').removeClass("active");
+
+            $('#asset_view').css('display', 'block');
+            $('#asset_detail').css('display', 'none')
+        })
+    });
+
+    function hardware_update(id = null) {
+        swal({
+            title: "确定要收集此主机配置信息吗",
+            text: "这将会等待一定时间",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "确定",
+            closeOnConfirm: false
+        }, function () {
+            if (id) {
+                $.get(
+                    "/api/v0.1/hardware-update/" + id + "/",
+                    {},
+                    function (res) {
+                        if (res.code === 200) {
+                            swal({title: "收集信息", text: "收集成功", type: "success"}, function () {
+                                window.location.reload();
+                            })
+                        } else {
+                            swal({
+                                title: "收集信息",
+                                text: "收集失败(原因):" + res.error + res.result,
+                                type: "error"
+                            }, function () {
+                                window.location.reload();
+                            })
+                        }
+                    }
+                )
+            }
+        });
+    }
+
+    function test_ping(id = null, ip = null) {
+        swal({
+            title: "确定要Ping此主机吗",
+            text: "这将会等待一定时间",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "确定",
+            closeOnConfirm: false
+        }, function () {
+            if (id === null) {
+                return null
+            }
+            let url = '/api/v0.1/test-ping/' + id + '/';
+            $.get(
+                url, {}, function (res) {
+                    if (res.code === 200) {
+                        swal({title: "连接测试", text: "此服务器可以Ping通", type: "success"}, function () {
+                            window.location.reload();
+                        })
+                    } else {
+                        swal({title: "连接测试", text: "失败:" + res.error, type: "error"}, function () {
+                            window.location.reload()
+                        })
+                    }
+                }
+            )
+        });
+
+    }
+</script>
+{% endblock %}

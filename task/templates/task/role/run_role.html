@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% block title %}
+执行Role
+{% endblock %}
+{% block content %}
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-10">
+        <h2></h2>
+        <ol class="breadcrumb">
+            <li>
+                <a>Role</a>
+            </li>
+            <li class="active">
+                <strong>剧本Role</strong>
+            </li>
+        </ol>
+    </div>
+    <div class="col-sm-2">
+    </div>
+</div>
+<div class="wrapper wrapper-content">
+    <div class="modal-header">
+        <h4 class="modal-title" id="CeleryTaskModalLabel">剧本Role</h4>
+    </div>
+    <div class="row">
+        <div class="col-sm-8">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6" style="margin-top: 10px;">
+                    <div class="form-group">
+                        <label>选择主机组</label>
+                        <select class="form-control  select2 select2-hidden-accessible" style="width: 100%;"
+                                id="hostGroup"
+                                name="hostGroup">
+                            <option value="default">default</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="ans_host">
+                        <label>选择主机</label>
+                        <select class="selectpicker" title="选择一个或多个主机进行配置" data-live-search="true" data-size="5"
+                                name="host"
+                                data-width="100%" id="select_hosts" multiple>
+                            <!--<option name="host">选择一个主机进行配置</option>-->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>选择Role脚本</label>
+                        <select class="selectpicker" title="选择一个Role脚本执行" data-live-search="true" data-size="5"
+                                name="host"
+                                data-width="100%" multiple id="role_script">
+                            {% for r in role_script %}
+                            <option value="{{ r.id }}">{{ r.r_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <a href="{% url 'roles' %}" type="button" class="btn btn-danger">返回</a>
+                        <a class="btn btn-primary" onclick="runRole()">执行</a>
+                        <a href="{% url 'role-script' %}" class="btn btn-success">创建执行脚本</a>
+                    </div>
+                    <!-- /.form-group -->
+                </div>
+                <div class="col-sm-6">
+                    <div class="box-flex" style="color: red;font-size: 12px;">
+                        <h3>注意事项</h3>
+                        <p>1. 执行Role时不要切换页面，因为websooket连接后会立即执行，切换页面影响速度...</p>
+                        <p>2. 当Role正在执行的时后，请不要关闭页面</p>
+                        <p>3. 注意，执行的剧本参数 -host 必须这样书写: <br> -host:default
+                            <br>默认使用default组才能对选择的主机有效果</p>
+                        <p>4. 选择主机与要执行的role, 将自动生成执行脚本，然后可以修改配置</p>
+                    </div>
+                </div>
+            </div>
+            <!-- /.col -->
+        </div>
+        <div class="col-sm-4">
+            <div class="box-body">
+                <h3>最近添加的脚本</h3>
+                <table id="role" class="table table-bordered dataTable table-striped">
+                    <thead>
+                    <tr>
+                        <th class="text-center">脚本名称</th>
+                        <th class="text-center">最后修改时间</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for r in script %}
+                    <tr>
+                        <td class="text-center">{{ r.r_name }}</td>
+                        <td class="text-center">{{ r.change_time |date:"Y-m-d H:i:s" }}</td>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="box-footer">
+                <pre style="background-color: #1c2d3f;color: white" id="code-ans"></pre>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+
+<script>
+    $(function () {
+        let url = "/api/v1/assets/hosts/";
+        $.get(
+            url, {}, function (data) {
+                let html = undefined;
+                let par = $("#select_hosts");
+                $.each(data, function (i, obj) {
+                    html = $('<option value="' + obj.id + '">' + obj.name + '</option>');
+                    par.append(html)
+                });
+                par.selectpicker('refresh');
+            }
+        );
+
+    });
+    function runRole() {
+        // 发送post请求，到后台验证，验证成功后返回ws连接
+        var ids = [];
+        $("#ans_host option:selected").each(function () {
+            ids.push($(this).val());
+        });
+        let rsid = $("#role_script option:selected").val();
+
+        if (ids !== [] && rsid) {
+            // 发送请求 建立ws连接
+            ws_connect(ids, rsid)
+        } else {
+            layer.alert("请选择必要的选项", {icon:2,closeBtn: 0});
+        }
+        //收到连接然后发送ws请求
+        // 等待服务器传消息
+    }
+
+    function ws_connect(ids, rid) {
+        // 作为参数发送到服务器 并建立连接
+        var role = new WebSocket(
+            'ws://' + window.location.host + '/ws/playbook-run/?' + 'key=fau87isadhh34s84jfk3q4sdfhjk345jg3hu'
+        );
+        //发送消息
+        role.onopen = function () {
+            let message = {};
+            message['ids'] = ids;
+            message['id'] = rid;
+            message['role'] = 1;
+            let send_data = JSON.stringify(message);
+            role.send(send_data)
+        };
+        // 接受消息
+        role.onmessage = function (recv) {
+            console.log(recv.data);
+            $("#code-ans").append(recv.data)
+        };
+        role.onclose = function (recv) {
+            console.log("执行完毕")
+        };
+    }
+</script>
+
+{% endblock %}

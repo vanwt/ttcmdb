@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}
+上传资产表
+{% endblock %}
+
+{% block content %}
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-10">
+        <h2></h2>
+        <ol class="breadcrumb">
+            <li>
+                <a>上传资产</a>
+            </li>
+        </ol>
+    </div>
+    <div class="col-sm-2">
+    </div>
+</div>
+<div class="wrapper wrapper-content animated fadeInRight">
+    <h3 style="color: green;margin-left: 20px;">{{msg|safe}}</h3>
+    <div class="row">
+        <div style="margin-left: 20px;">
+            <h2 style="color: red">上传失败</h2>
+            {% for e in errors %}
+            <p>{{e.error}}</p>
+            <p>{{e.obj}}</p>
+            {% endfor %}
+        </div>
+        <div style="margin-left: 20px;">
+            <h2 style="color: green">上传成功</h2>
+            {% for e in create %}
+            <p>{{e}}</p>
+            {% endfor %}
+        </div>
+        <div style="margin-left: 20px;">
+            <h2 style="color: green">修改成功</h2>
+            {% for e in update %}
+            <p>{{e}}</p>
+            {% endfor %}
+        </div>
+    </div>
+    {% if err != '无' %}
+    <div style="margin-left: 20px;">
+        <h4 style="color: red">未知错误:{{err}}</h4>
+    </div>
+    {% endif %}
+    <h2><a href="javascript:history.back()">返回上一页</a></h2>
+</div>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}
+会话记录列表
+{% endblock %}
+{% block content %}
+<!-- 路径 -->
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-10">
+        <h2></h2>
+        <ol class="breadcrumb">
+            <li>
+                <a>
+                    会话管理
+                </a>
+            </li>
+            <li class="active">
+                <strong>
+                    会话列表
+                </strong>
+            </li>
+        </ol>
+    </div>
+    <div class="col-sm-2">
+    </div>
+</div>
+<div class="wrapper wrapper-content animated fadeInRight ecommerce">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="mail-box-header">
+                <div id="asset_list_table_wrapper" class="dataTables_wrapper form-inline dt-bootstrap no-footer">
+                    <table class="footable table toggle-arrow-tiny table-striped table-bordered table-hover default dataTable no-footer footable-loaded breakpoint"
+                           id="asset_list_table" style="width: 100%;" role="grid">
+                        <thead>
+                        <tr role="row">
+                            <th class="text-center sorting" rowspan="1" colspan="1">ID</th>
+                            <th class="text-center sorting" tabindex="0" rowspan="1" colspan="1">连接主机</th>
+                            <th class="text-center sorting_disabled">操作用户</th>
+                            <th class="text-center sorting_disabled">SSH登录用户</th>
+                            <th class="text-center sorting" rowspan="1" colspan="1">操作时间</th>
+                            <th class="text-center sorting_disabled" rowspan="1" colspan="1">动作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for s in s_l %}
+                        <tr role="row" class="odd">
+                            <td class="text-center">
+                                <a href="">{{ s.id }}</a>
+                            </td>
+                            <td class=" text-center">
+                                {{s.host}}
+                            </td>
+                            <td class=" text-center">
+                                {{s.user.realname|default:"远程连接"}}
+                            </td>
+                            <td class=" text-center">
+
+                                {{s.ssh_user.username | default:"root"}}
+                            </td>
+                            <td class=" text-center">
+                                {{ s.create_time }}
+                            </td>
+                            <td class=" text-center">
+                                <a href="" class="btn btn-primary btn-xs">查看</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

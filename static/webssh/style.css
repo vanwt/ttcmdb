@@ -1,0 +1,267 @@
+@charset "utf-8";
+
+/*公共样式--开始*/
+html,
+body,
+div,
+ul,
+li,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+dl,
+dt,
+dd,
+ol,
+form,
+input,
+textarea,
+th,
+td,
+select {
+  margin: 0;
+  padding: 0;
+}
+
+* {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  font-family: "Microsoft YaHei";
+  font-size: 14px;
+  color: #fff;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: normal;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+img {
+  border: none;
+  vertical-align: middle;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+table {
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+input,
+textarea {
+  outline: none;
+  border: none;
+}
+
+textarea {
+  resize: none;
+  overflow: auto;
+}
+
+select {
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+
+}
+
+/* 清除IE select默认样式 */
+select::-ms-expand {
+  display: none;
+}
+
+/* *{outline: 1px #00ff00 solid} */
+.app{
+width: 100%;
+height: 100%;
+background-color: #1f1b1b;
+position: fixed;
+top: 0;
+left: 0;
+display: -webkit-box;
+display: -ms-flexbox;
+display: flex;
+-webkit-box-orient: vertical;
+-webkit-box-direction: normal;
+    -ms-flex-direction: column;
+        flex-direction: column;
+}
+.header{
+  width: 100%;
+  height: 30px;
+  line-height: 30px;
+  font-size: 13px;
+    font-weight: 300;
+    padding: 0 50px;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+  background-color: #463e3e;
+}
+.header .header-item{
+  display: block;
+  padding: 0 20px;
+  -ms-flex-negative: 0;
+      flex-shrink: 0;
+}
+.header .header-item:hover{
+  opacity: 0.8;
+}
+.main{
+  width: 100%;
+  height: 100%;
+  -ms-flex-negative: 1;
+      flex-shrink: 1;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+.navigation{
+  width: 300px;
+  height: 100%;
+  background-color: #2f2a2a;
+  padding-bottom: 30px;
+  -ms-flex-negative: 0;
+      flex-shrink: 0;
+  overflow-y: auto;
+}
+.search{
+  border-bottom: 2px inset #19aa8d;
+}
+.search input{
+  width: 100%;
+  height: 30px;
+  background-color: transparent;
+  padding: 0 20px;
+  color: #fff;
+}
+.nav-item{
+  display: block;
+  width: 100%;
+  padding: 0 20px;
+  height: 30px;
+  line-height: 30px;
+  font-size: 13px;
+  color: #fff;
+  -ms-flex-negative: 0;
+      flex-shrink: 0;
+}
+.nav-item:hover{
+  opacity: 0.8;
+}
+.content-wrap{
+  width: calc(100% - 300px);
+  height: 100%;
+  -ms-flex-negative: 1;
+      flex-shrink: 1;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+
+}
+.tab{
+  width: 100%;
+  height: 30px;
+  line-height: 30px;
+  -ms-flex-negative: 0;
+      flex-shrink: 0;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  background-color: rgb(58, 51, 51);
+}
+.tab-item{
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  width: 150px;
+  cursor: pointer;
+  -ms-flex-negative: 1;
+      flex-shrink: 1;
+  overflow: hidden;
+}
+.tab-item.active{
+  border-bottom: 3px solid #19aa8d;
+  /* background-color: #1f1b1b; */
+}
+
+.tab-item .title{
+  padding: 0 14px;
+  font-size: 13px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow:ellipsis;
+  width: 100%;
+}
+.tab-item .title:hover{
+  opacity: 0.8;
+}
+.tab-item .icon{
+  padding: 0 2px;
+  -ms-flex-negative: 0;
+      flex-shrink: 0;
+}
+.content-list{
+  width: 100%;
+  height: 100%;
+  -ms-flex-negative: 1;
+      flex-shrink: 1;
+
+}
+.content{
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  display: none;
+}
+.content.active{
+  display: block;
+}
+/* 滚动条 */
+::-webkit-scrollbar{
+  width: 5px;
+
+}
+::-webkit-scrollbar-button{
+  display: none;
+}
+::-webkit-scrollbar-track{
+  display: none;
+}
+::-webkit-scrollbar-thumb {
+  background-color:#606d71;
+  background-clip:padding-box;
+  border-radius:3px;
+}

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}
+    403 权限不足
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-xs-12">
+        <!-- PAGE CONTENT BEGINS -->
+
+        <div class="error-container">
+            <div class="well">
+                <h1 class="grey lighter smaller">
+                    <span class="blue bigger-125"><i class="ace-icon fa fa-send">&ensp;</i>403</span>
+                    请求拒绝
+                </h1>
+                <hr/>
+                <h3 class="lighter smaller">您没有访问此页面的权限，请联系管理员提升权限 ^_^</h3>
+                <hr/>
+                <div class="space"></div>
+
+                <div class="center">
+                    <a href="javascript:history.back()" class="btn btn-grey">
+                        <i class="ace-icon fa fa-arrow-left"></i>
+                        返回上一页
+                    </a>
+
+                    <a href="/" class="btn btn-primary">
+                        <i class="ace-icon fa fa-tachometer"></i>
+                        返回首页
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE CONTENT ENDS -->
+    </div><!-- /.col -->
+</div><!-- /.row -->
+
+
+{% endblock %}

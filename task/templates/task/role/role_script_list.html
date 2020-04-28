@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block title %}
+Role脚本管理
+{% endblock %}
+{% block style %}
+<style>
+    /* dataTables列内容居中 */
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-10">
+        <h2></h2>
+        <ol class="breadcrumb">
+            <li>
+                <a>Role脚本管理</a>
+            </li>
+            <li class="active">
+                <strong>Role脚本列表</strong>
+            </li>
+        </ol>
+    </div>
+</div>
+<div class="wrapper wrapper-content">
+    <div class="alert alert-info help-message">
+        注意事项<span style="color: red">文本类型值</span>
+    </div>
+    <div class="mail-box-header" style="width: 100%">
+        <div class="row">
+
+            <div class="col-sm-12 pull-left" style="margin-bottom: 3px; margin-top: 3px">
+                <a href="{% url 'roles' %}" class="btn btn-ml btn-danger pull-left">
+                    <i class="fa fa-backward"></i>
+                    <span class="bigger-110">返回</span>
+                </a>
+                <button class="btn btn-xl btn-primary pull-left" data-toggle="modal" style="margin-left: 2px"
+                        data-target="#RoleAddModal">
+                    <i class="fa fa-edit"></i>
+                    <span class="bigger-110">在线生成</span>
+                </button>
+            </div>
+
+            <div class="col-xs-12" style="margin-top: 8px;">
+                <!-- /.box -->
+                <div class="box">
+                    <!-- dataTable -->
+                    <div class="box-body">
+                        <table id="role" class="table table-bordered dataTable table-striped">
+                            <thead>
+                            <tr>
+                                <th class="text-center">脚本名称</th>
+                                <th class="text-center">创建人</th>
+                                <th class="text-center">最后修改日期</th>
+                                <th class="text-center">操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for rs in role_script_list %}
+                            <tr>
+                                <td class="text-center">{{ rs.r_name }}</td>
+                                <td class="text-center">{{rs.creator.username}}</td>
+                                <td class="text-center">{{ rs.change_time|date:"Y-m-d H:i:s" }}</td>
+                                <td class="text-center">
+                                    <a href="{% url 'detail-role-script' %}?id={{rs.id}}" type="button"
+                                       class="btn btn-success btn-xs">详细/修改
+                                    </a>
+                                    <button onclick="del({{rs.id}})" type="button"
+                                            class="btn btn-danger btn-xs delete">删除
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- /.box-body -->
+                </div>
+                <!-- /.box -->
+                <!-- RoleAddModal  -->
+                <div class="modal fade" id="RoleAddModal" tabindex="-1" role="dialog"
+                     aria-labelledby="RoleAddModalLabel"
+                     aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                                    &times;
+                                </button>
+                                <h4 class="modal-title" id="RoleAddModalLabel">
+                                    添加role
+                                </h4>
+                            </div>
+                            {% if perms.task.add_ansiblerole %}
+                            <div class="modal-body">
+                                <form action="{% url 'role-script' %}" method="post" class="main form-horizontal">
+                                    <fieldset>
+                                        {% csrf_token %}
+                                        <div class="form-group">
+                                            <label for="role_name">role名称</label>
+                                            <input class="form-control" name="role_name" id="role_name" required>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>选择Role</label>
+                                            <select class="selectpicker form-control" title="选择一个或多个"
+                                                    data-live-search="true"
+                                                    data-size="15" name="roles"
+                                                    multiple>
+                                                {% for r in roles %}
+                                                <option value="{{ r.id }}">{{ r.role_name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </fieldset>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                        <button type="submit" class="btn btn-primary">确认添加</button>
+                                    </div>
+                                </form>
+                            </div>
+                            {% else %}
+                            <div class="modal-body">
+                                抱歉！您没有此操作的权限！如有疑问，请联系管理员！
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">确认</button>
+                            </div>
+                            {% endif %}
+                        </div><!-- /.modal-content -->
+                    </div><!-- /.modal -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /.row -->
+
+{% endblock %}
+
+
+{% block script %}
+<!-- DataTables -->
+<script type="text/javascript">
+    function del(id) {
+
+        swal({
+            title: "你确定删除",
+            text: "你将无法恢复",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "确定",
+            closeOnConfirm: false
+        }, function () {
+            $.ajax({
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                url: "{% url 'role-script' %}",
+                type: 'DELETE',
+                data: {'id': id},
+                success: function (obj) {
+                    if (obj.status) {
+                        swal({title: "删除", text: "已成功删除", type: "success"}, function () {
+                            window.location.reload();
+                        })
+                    } else {
+                        swal("错误", "删除" + "[ " + obj.error + " ]" + "遇到错误", "error");
+                    }
+                },
+                error: function () {
+                    swal({title: "删除失败", text: "没有权限", type: "error"}, function () {
+                        window.location.reload();
+                    })
+                }
+            });
+        });
+    };
+</script>
+{% endblock %}

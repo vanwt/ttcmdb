@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% block title %}
+更改Role脚本
+{% endblock %}
+{% block content %}
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-10">
+        <h2></h2>
+        <ol class="breadcrumb">
+            <li>
+                <a>任务管理</a>
+            </li>
+            <li class="active">
+                <strong>修改Role脚本</strong>
+            </li>
+        </ol>
+    </div>
+    <div class="col-sm-2">
+    </div>
+</div>
+<div class="modal-content" style="margin-top: 10px;margin-bottom: 45px;">
+    <div class="modal-header">
+        <h4 class="modal-title" id="CeleryTaskModalLabel">修改Role脚本</h4>
+    </div>
+    <div class="modal-body">
+        <div class="form-group">
+            <input type="hidden" value="{{id}}" id="rid">
+            <label>脚本名</label>
+            <div id="r_name" class="form-control"></div>
+        </div>
+        <div class="form-group">
+            <label>脚本内容 </label>
+            <div id="editor" style="height: 650px;"></div>
+        </div>
+        <div class="form-group">
+            <button onclick="save()" class="btn btn-success btn-xl">保存</button>
+            <a href="{% url 'role-script'%}" class="btn btn-danger btn-xl">返回</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ext-language_tools.js" charset="utf-8"></script>
+
+<script>
+    ace.require("ace/ext/language_tools");
+    var editor = ace.edit("editor");
+    editor.setOptions({
+        //      enableBasicAutocompletion: true,
+        enableSnippets: true,
+    });
+    editor.setTheme("ace/theme/monokai");//monokai模式是自动显示补全提示
+    //https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.4/keybinding-sublime.js
+    editor.getSession().setMode("ace/mode/yaml");//语言
+    editor.setFontSize(16);
+    $(document).ready(function () {
+        var id = $("#rid").val();
+        $.ajax({
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            url: "{% url 'detail-role-script' %}",
+            type: 'POST',
+            data: {
+                "id": id
+            },
+            success: function (res) {
+                if (res.code !== 200) {
+                    layer.alert("查找失败" + res.error, {icon:2,closeBtn: 0}, function () {
+                        window.location.href = "{% url 'role-script'%}"
+                    });
+                } else {
+                    $("#r_name").text(res.name);
+                    editor.setValue(res.content, -1);
+                }
+            },
+            error: function (data) {
+                layer.alert("执行过程中出现错误:" + data.responseText, {icon:2,closeBtn: 0}, function () {
+                    window.location.href = "{% url 'role-script'%}"
+                });
+            }
+        });
+    });
+
+    function save() {
+        let name = $("#r_name").text();
+        console.log(name);
+        let content = editor.getSession().getValue();
+        if (name) {
+            $.ajax({
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                url: "{% url 'detail-role-script' %}",
+                type: 'PUT',
+                data: {
+                    "name": name,
+                    "content": content
+                },
+                success: function (res) {
+                    if (res.code === 200) {
+                        layer.alert(
+                                "保存成功",
+                                {icon: 1},
+                                function () {
+                                    window.location.href = "{% url 'role-script'%}"
+                                }
+                            );
+                    } else {
+                        layer.alert("保存失败: " + res.error, {icon:2,closeBtn: 0});
+                    }
+                },
+                error: function (data) {
+                    layer.alert("执行过程中出现错误:" + data.responseText, {icon:2,closeBtn: 0});
+                }
+            });
+        }
+    }
+</script>
+{% endblock %}

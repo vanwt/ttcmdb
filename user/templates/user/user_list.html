@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% block title %}
+    用户列表
+{% endblock %}
+{% block content %}
+    <!-- 路径 -->
+    <div class="row wrapper border-bottom white-bg page-heading">
+        <div class="col-sm-10">
+            <h2></h2>
+            <ol class="breadcrumb">
+                <li>
+                    <a>
+                        用户管理
+                    </a>
+                </li>
+                <li class="active">
+                    <strong>
+                        用户列表
+                    </strong>
+                </li>
+            </ol>
+        </div>
+        <div class="col-sm-2">
+        </div>
+    </div>
+    <div class="wrapper wrapper-content animated fadeInRight ecommerce">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="mail-box-header">
+                    <div class="uc pull-left m-r-5" style="margin:0 10px 10px 0">
+                        <a href="{% url 'user-create' %}" class="btn btn-sm btn-primary btn-create-asset">
+                            新建用户 </a></div>
+                    <div id="asset_list_table_wrapper" class="dataTables_wrapper form-inline dt-bootstrap no-footer">
+                        <table class="footable table toggle-arrow-tiny table-striped table-bordered table-hover default dataTable no-footer footable-loaded breakpoint"
+                               id="asset_list_table" style="width: 100%;" role="grid">
+                            <thead>
+                            <tr role="row">
+                                <th class="text-center sorting" tabindex="0" aria-controls="asset_list_table"
+                                    rowspan="1" colspan="1">用户名
+                                </th>
+                                <th class="text-center sorting" tabindex="0" aria-controls="asset_list_table"
+                                    rowspan="1" colspan="1">角色
+                                </th>
+                                <th class="text-center sorting_disabled" rowspan="1" colspan="1" aria-label="激活中"
+                                >姓名
+                                </th>
+                                <th class="text-center sorting_disabled" rowspan="1" colspan="1" aria-label="激活中">是否激活
+                                </th>
+                                <th class="text-center sorting" tabindex="1" aria-controls="asset_list_table  "
+                                    rowspan="1" colspan="1">上次登录
+                                </th>
+                                <th class="text-center sorting_disabled" rowspan="1" colspan="1">动作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% csrf_token %}
+                            {% for user in users_list %}
+                                <tr role="row" class="odd">
+                                    <td class="text-center">
+                                        <a href="{% url 'user-info' %}">{{ user.username }}</a>
+                                    </td>
+                                    <td class=" text-center">
+                                        {% if user.is_superuser %}
+                                            管理员
+                                        {% else %}
+                                            普通用户
+                                        {% endif %}
+                                    </td>
+                                    <td class=" text-center">
+                                        {{ user.realname }}
+                                    </td>
+                                    <td class=" text-center">
+                                        {% if user.is_active %}
+                                            <span class="label label-primary">已激活</span>
+                                        {% else %}
+                                            <span class="label label-danger">未激活</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class=" text-center">
+                                        {{ user.last_login }}
+                                    </td>
+                                    <td class=" text-center">
+                                        <a href="{% url 'user-info' %}" class="btn btn-primary btn-xs">查看</a>
+                                        {% if request.user.is_superuser %}
+                                            <a href="{% url 'user-update' user.id %}" class="btn btn-success btn-xs">修改信息</a>
+                                            <a href="{% url 'update_pwd' %}" class="btn btn-success btn-xs">修改密码</a>
+                                        {% endif %}
+                                        <button class="btn btn-warning btn-xs" onclick="resetpwd('{{ user.id }}')">
+                                            重置密码
+                                        </button>
+                                        <button class="btn btn-danger btn-xs" onclick="del('{{ user.id }}')">删除</button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                        <div class="row m-t">
+                            <div class="col-md-12">
+                                <div class="dataTables_paginate paging_simple_numbers" id="asset_list_table_paginate">
+                                    {% include 'page.html' %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+{% block script %}
+    <script>
+        function resetpwd(id) {
+            $.get(
+                '/api/v1/user/reset/password/' + id + '/',
+                {},
+                function (data) {
+                    if (data.errcode === 0) {
+                        layer.alert('成功!\n重置密码为123456', {icon: 1},)
+                    } else {
+                        layer.alert("失败!\n请检查服务器连接或传入参数", {icon: 2, closeBtn: 0});
+                    }
+
+                }
+            )
+        }
+    </script>
+    <script type="text/javascript">
+        function del(id) {
+            layer.confirm("真的要删除吗？", {icon: 3, closeBtn: 2}, function () {
+                var loadT = layer.msg('正在删除,请稍候...', {icon: 16, time: 0, shade: [0.3, '#000']});
+                $.ajax({
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    url: "/user/delete/" + id + "/",
+                    type: 'GET',
+                    data: {},
+                    success: function (obj) {
+                        if (obj.code === 200) {
+                            layer.alert(
+                                "删除成功",
+                                {icon: 1},
+                                function () {
+                                    window.location.reload()
+                                }
+                            );
+                        } else {
+                            layer.alert("删除过程中出现错误:" + obj.error, {icon: 2, closeBtn: 0});
+                        }
+                    },
+                    error: function (data) {
+                        layer.alert("删除失败" + data.responseText, {closeBtn: 0}, function () {
+                            layer.closeAll()
+                        });
+                    }
+                });
+            });
+        }
+    </script>
+{% endblock %}

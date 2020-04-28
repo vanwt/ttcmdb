@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block title %}
+Role管理
+{% endblock %}
+{% block style %}
+<style>
+    /* dataTables列内容居中 */
+    #role > tbody > tr > td {
+        text-align: center;
+    }
+
+    /* dataTables表头居中 */
+    #role > thead:first-child > tr:first-child > th {
+        text-align: center;
+    }
+
+    .form-horizontal .form-group {
+        margin: 0;
+    }
+
+    .form-horizontal .control-label {
+        text-align: unset;
+        margin-bottom: 5px;
+    }
+
+    .form-horizontal .col-sm-6 {
+        width: 100%;
+    }
+
+    #content {
+        width: 100%;
+        height: 400px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-10">
+        <h2></h2>
+        <ol class="breadcrumb">
+            <li>
+                <a>任务管理</a>
+            </li>
+            <li class="active">
+                <strong>Role列表</strong>
+            </li>
+        </ol>
+    </div>
+</div>
+<div class="wrapper wrapper-content">
+    <div class="alert alert-info help-message">
+        注意事项：<span style="color: red;"> Role执行顺序 创建/上传Role --> 选择Role生成脚本 --> 执行生成的脚本 --> 输出结果</span><br>
+        <span style="color: red;">上传Role的压缩包必包含一个文件夹: 内部结构 test.tar --> test(文件夹) --> defaults/vars/files...(必要的文件)</span>
+    </div>
+    <div class="mail-box-header" style="width: 100%">
+        <div class="row">
+
+            <div class="col-sm-12 pull-left" style="margin-bottom: 3px; margin-top: 3px">
+                <button class="btn btn-xl btn-primary pull-left" data-toggle="modal" style="margin-left: 2px"
+                        data-target="#RoleAddModal">
+                    <i class="fa fa-edit"></i>
+                    <span class="bigger-110">在线添加role</span>
+                </button>
+                <button class="btn btn-ml btn-primary pull-left" data-toggle="modal" style="margin-left: 2px"
+                        data-target="#RoleUploadModal">
+                    <i class="fa fa-upload"></i>
+                    <span class="bigger-110">上传Role</span>
+                </button>
+                <a href="{% url 'role-script' %}" class="btn btn-ml btn-warning" style="margin-left: 2px">
+                    <i class="fa fa-dashcube"></i>
+                    <span class="bigger-110">创建Role执行脚本</span>
+                </a>
+                <a href="{% url 'run-role' %}" class="btn btn-ml btn-success" style="margin-left: 2px">
+                    <i class="fa fa-play"></i>
+                    <span class="bigger-110">执行role</span>
+                </a>
+            </div>
+
+
+            <div class="col-xs-12" style="margin-top: 8px;">
+                <!-- /.box -->
+                <div class="box">
+                    <!-- dataTable -->
+                    <div class="box-body">
+                        <table id="role" class="table table-bordered dataTable table-striped">
+                            <thead>
+                            <tr>
+                                <th class="text-center">剧本名称</th>
+                                <th class="text-center">创建人</th>
+                                <th class="text-center">剧本描述</th>
+                                <th class="text-center">添加日期</th>
+                                <th class="text-center">操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for role in role_list %}
+                            <tr>
+                                <td class="text-center">{{ role.role_name }}</td>
+                                <td class="text-center">{{role.role_user.username}}</td>
+                                <td class="text-center">{{ role.role_desc|default:"暂无" }}</td>
+                                <td class="text-center">{{ role.role_time|date:"Y-m-d H:i:s" }}</td>
+                                <td class="text-center">
+                                    <a href="{% url 'change-role' role.id %}" type="button"
+                                       class="btn btn-success btn-xs">详细/修改
+                                    </a>
+                                    <button onclick="del({{role.id}})" type="button"
+                                            class="btn btn-danger btn-xs delete">删除
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- /.box-body -->
+                </div>
+                <!-- /.box -->
+
+
+                <!-- RoleAddModal  -->
+                <div class="modal fade" id="RoleAddModal" tabindex="-1" role="dialog"
+                     aria-labelledby="RoleAddModalLabel"
+                     aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                                    &times;
+                                </button>
+                                <h4 class="modal-title" id="RoleAddModalLabel">
+                                    添加role
+                                </h4>
+                            </div>
+                            {% if perms.task.add_ansiblerole %}
+                            <div class="modal-body">
+                                <p style="color: red">{{role_add_error1}}</p>
+                                <form action="{% url 'role' %}" method="post" class="main form-horizontal">
+                                    <fieldset>
+                                        {% csrf_token %}
+                                        <div class="form-group">
+                                            <label for="role_name" class="col-sm-2 control-label">role名称</label>
+                                            <div class="col-sm-6">
+                                                <input class="form-control" name="role_name" id="role_name" required>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="role_desc" class="col-sm-2 control-label">role描述</label>
+                                            <div class="col-sm-6">
+                                                <textarea class="form-control" name="role_desc" rows="5"></textarea>
+
+                                            </div>
+                                        </div>
+                                    </fieldset>
+
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                        <button type="submit" class="btn btn-primary">确认添加</button>
+                                    </div>
+                                </form>
+                            </div>
+                            {% else %}
+                            <div class="modal-body">
+                                抱歉！您没有此操作的权限！如有疑问，请联系管理员！
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">确认</button>
+                            </div>
+                            {% endif %}
+                        </div><!-- /.modal-content -->
+                    </div><!-- /.modal -->
+                </div>
+
+                <!-- RoleUploadModal  -->
+                <div class="modal fade" id="RoleUploadModal" tabindex="-1" role="dialog"
+                     aria-labelledby="RoleUploadModalLabel"
+                     aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                                    &times;
+                                </button>
+                                <h4 class="modal-title" id="RoleUploadModalLabel">
+                                    上传role
+                                </h4>
+                            </div>
+                            {% if perms.task.add_ansiblerole %}
+                            <div class="modal-body">
+                                <p style="color: red">{{role_add_error2}}</p>
+                                <form action="{% url 'upload-role' %}" method="post" enctype="multipart/form-data"
+                                      class="main form-horizontal">
+                                    {% csrf_token %}
+                                    <fieldset>
+                                        <p style="font-size: 14px;">上传Role的压缩包必包含一个文件夹: <br>内部结构 test.tar --> test(文件夹)
+                                            --> defaults/vars/files...(必要的文件)<br>目前压缩包格式仅支持 zip/tar</p>
+                                        <div class="form-group">
+                                            <label for="role_desc" class="col-sm-2 control-label">role描述</label>
+                                            <div class="col-sm-6">
+                                                <textarea class="form-control" name="role_desc" rows="5"
+                                                          id="role_desc"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="form-group"><span style="color: red">压缩包名称等同于role文件名</span>
+                                            <label class="col-sm-2 control-label">role文件</label>
+                                            <div class="col-sm-6">
+                                                <input type="file" title="点击选择文件夹" class="file" name="role_file">
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                        <button type="submit" class="btn btn-primary" id="role_ops">上传</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            {% else %}
+                            <div class="modal-body">
+                                抱歉！您没有此操作的权限！如有疑问，请联系管理员！
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">确认</button>
+                            </div>
+                            {% endif %}
+                        </div><!-- /.modal-content -->
+                    </div><!-- /.modal -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /.row -->
+
+{% endblock %}
+
+
+{% block script %}
+<!-- DataTables -->
+<script type="text/javascript">
+    function del(id) {
+        layer.confirm("真的要删除吗？", {icon: 3, closeBtn: 2}, function () {
+            var loadT = layer.msg('正在删除,请稍候...', {icon: 16, time: 0, shade: [0.3, '#000']});
+            $.ajax({
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                url: "{% url 'roles' %}",
+                type: 'DELETE',
+                data: {"id": id},
+                success: function (obj) {
+                    if (obj.code === 200) {
+                        layer.alert(
+                            "删除成功",
+                            {icon: 1},
+                            function () {
+                                layer.closeAll();
+                                window.location.reload()
+                            }
+                        );
+                    } else {
+                        layer.alert("删除过程中出现错误:" + obj.msg, {closeBtn: 0}, function () {
+                            layer.closeAll()
+                        });
+                    }
+                },
+                error: function (data) {
+                    layer.alert("删除失败" + data.responseText, {closeBtn: 0}, function () {
+                        layer.closeAll()
+                    });
+                }
+            });
+        });
+    }
+</script>
+{% endblock %}

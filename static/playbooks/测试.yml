@@ -1,0 +1,8 @@
+#/tmp/xx.yml
+
+---
+- hosts: all    #hosts中指定
+
+  tasks:
+    - name: "ls /tmp"         #- name:任务名称,下面是任务过程
+      shell: 'ls /tmp/'

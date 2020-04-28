@@ -1,0 +1,23 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Expires" content="0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-control" content="no-cache">
+    <meta http-equiv="Cache" content="no-cache">
+    <link rel="stylesheet" href="/static/xterm/xterm.css"/>
+    <title>{{ ip }}@{{ user }}</title>
+
+</head>
+<body>
+<div id="terminal"></div>
+<input type="hidden" id="sid" value="{{sid}}">
+<input type="hidden" id="uid" value="{{uid}}">
+<input type="hidden" id="skey" value="{{skey}}">
+<input type="hidden" id="chain" value="0">
+<script src="/static/js/jquery.min.js"></script>
+<script src="/static/xterm/xterm.js"></script>
+<script src="/static/webssh.js?ver=2019731"></script>
+</body>
+</html>
